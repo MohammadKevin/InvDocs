@@ -16,7 +16,7 @@ import {
   Truck,
   Clock,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -49,13 +49,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden">
-
       {/* 🚀 Header / Navigation */}
       <nav
-        className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled
+        className={`fixed w-full z-[100] transition-all duration-500 ${
+          isScrolled
             ? "bg-white/70 backdrop-blur-xl py-4 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] border-b border-slate-100"
             : "bg-transparent py-8"
-          }`}
+        }`}
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
           <motion.div
@@ -73,9 +73,11 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-lg font-black tracking-tighter text-slate-900 uppercase">
-                PT <span className="text-amber-500">GUDANG</span> BARU
+                PT <span className="text-[#F2C547]">GUDANG</span> BARU BERKAH
               </span>
-              <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em]">LOGISTICS</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em]">
+                LOGISTICS
+              </span>
             </div>
           </motion.div>
 
@@ -95,7 +97,10 @@ export default function LandingPage() {
             </div>
 
             <div className="flex items-center gap-4 border-l pl-10 border-slate-200">
-              <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+              <Link
+                href="/login"
+                className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
+              >
                 Log In
               </Link>
               <Link href="/register">
@@ -110,7 +115,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <button className="lg:hidden p-2 bg-slate-50 rounded-xl" onClick={() => setMobileMenuOpen(true)}>
+          <button
+            className="lg:hidden p-2 bg-slate-50 rounded-xl"
+            onClick={() => setMobileMenuOpen(true)}
+          >
             <Menu size={24} className="text-slate-900" />
           </button>
         </div>
@@ -133,21 +141,40 @@ export default function LandingPage() {
               className="absolute right-0 top-0 h-full w-[80%] bg-white p-8 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-16">
-                <span className="font-black text-xl tracking-tighter uppercase">Menu</span>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full">
+                <span className="font-black text-xl tracking-tighter uppercase">
+                  Menu
+                </span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 bg-slate-100 rounded-full"
+                >
                   <X size={24} />
                 </button>
               </div>
               <div className="space-y-6">
                 {["Home", "About", "Services", "Contact"].map((item) => (
-                  <a key={item} href="#" className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors">
+                  <a
+                    key={item}
+                    href="#"
+                    className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
+                  >
                     {item}
                   </a>
                 ))}
               </div>
               <div className="absolute bottom-10 left-8 right-8 space-y-4">
-                <Link href="/login" className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-100">Login</Link>
-                <Link href="/register" className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-900 text-white">Get Started</Link>
+                <Link
+                  href="/login"
+                  className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-100"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-900 text-white"
+                >
+                  Get Started
+                </Link>
               </div>
             </motion.div>
           </motion.div>
@@ -157,14 +184,22 @@ export default function LandingPage() {
       {/* 🏗️ Hero Section */}
       <section className="relative pt-44 pb-20 md:pt-60 md:pb-40 overflow-hidden">
         {/* Animated Background Gradients */}
-        <motion.div style={{ y: y1 }} className="absolute top-0 left-0 w-full h-full -z-10">
+        <motion.div
+          style={{ y: y1 }}
+          className="absolute top-0 left-0 w-full h-full -z-10"
+        >
           <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-amber-200/30 rounded-full blur-[120px] animate-pulse" />
           <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-slate-200/50 rounded-full blur-[100px]" />
         </motion.div>
 
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <motion.div initial="initial" animate="animate" variants={staggerContainer} className="relative z-10">
+            <motion.div
+              initial="initial"
+              animate="animate"
+              variants={staggerContainer}
+              className="relative z-10"
+            >
               <motion.div
                 variants={fadeIn}
                 className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-white shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 text-slate-600 text-[11px] font-black uppercase tracking-[0.15em] mb-8"
@@ -176,28 +211,42 @@ export default function LandingPage() {
                 Smart Management v2.0
               </motion.div>
 
-              <motion.h1 variants={fadeIn} className="text-6xl md:text-[84px] font-black text-slate-900 leading-[0.95] mb-8 tracking-tighter">
+              <motion.h1
+                variants={fadeIn}
+                className="text-6xl md:text-[84px] font-black text-slate-900 leading-[0.95] mb-8 tracking-tighter"
+              >
                 Transformasi <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-amber-600">
                   Logistik Digital
                 </span>
               </motion.h1>
 
-              <motion.p variants={fadeIn} className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg mb-12 font-medium">
-                Sistem ekosistem pergudangan cerdas yang dirancang untuk efisiensi maksimal, transparansi data, dan skalabilitas industri manufaktur.
+              <motion.p
+                variants={fadeIn}
+                className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg mb-12 font-medium"
+              >
+                Sistem ekosistem pergudangan cerdas yang dirancang untuk
+                efisiensi maksimal, transparansi data, dan skalabilitas industri
+                manufaktur.
               </motion.p>
 
               <motion.div variants={fadeIn} className="flex flex-wrap gap-5">
                 <motion.button
-                  whileHover={{ y: -4, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}
+                  whileHover={{
+                    y: -4,
+                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
+                  }}
                   whileTap={{ scale: 0.98 }}
                   className="px-10 py-5 bg-slate-900 text-white rounded-[20px] font-bold flex items-center gap-3 group transition-all"
                 >
                   Start Integration
-                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </motion.button>
                 <motion.button
-                  whileHover={{ bg: "#f8fafc" }}
+                  whileHover={{ background: "#f8fafc" }}
                   className="px-10 py-5 border-2 border-slate-200 text-slate-900 rounded-[20px] font-bold transition-all hover:border-slate-300"
                 >
                   Explore Features
@@ -237,8 +286,12 @@ export default function LandingPage() {
                     <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Status</div>
-                    <div className="text-lg font-bold text-slate-900">Protected</div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      Status
+                    </div>
+                    <div className="text-lg font-bold text-slate-900">
+                      Protected
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -251,26 +304,21 @@ export default function LandingPage() {
       <section id="about" className="py-32 bg-white relative">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-12 gap-16 items-center">
-
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               className="lg:col-span-7 relative group"
             >
-              <div className="relative aspect-video rounded-[40px] overflow-hidden shadow-2xl border-8 border-slate-50 transition-all group-hover:border-slate-100">
+              <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <iframe
                   src="https://www.google.com/maps?q=PT+Gudang+Baru+Berkah+Kepanjen+Malang&output=embed"
                   width="100%"
                   height="100%"
-                  className="grayscale hover:grayscale-0 transition-all duration-700"
                   style={{ border: 0 }}
                   loading="lazy"
-                />
-              </div>
-              <div className="absolute -top-6 -left-6 bg-slate-900 text-white p-8 rounded-3xl hidden md:block shadow-2xl">
-                <div className="text-amber-500 font-black text-5xl mb-1 italic">25+</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Years Excellence</div>
+                  className="rounded-2xl"
+                ></iframe>
               </div>
             </motion.div>
 
@@ -284,20 +332,32 @@ export default function LandingPage() {
                 Core Philosophy
               </div>
               <h2 className="text-5xl font-black text-slate-900 mb-8 tracking-tighter leading-[1.1]">
-                Leading the <br /> <span className="text-slate-400">Next-Gen</span> Logistics
+                Leading the <br />{" "}
+                <span className="text-slate-400">Next-Gen</span> Logistics
               </h2>
               <p className="text-slate-500 text-lg leading-relaxed mb-10 font-medium">
-                PT Gudang Baru Berkah mengintegrasikan teknologi cloud terbaru untuk manajemen aset fisik. Kami memastikan setiap data yang Anda kelola memiliki tingkat enkripsi militer dan kemudahan akses real-time.
+                PT Gudang Baru Berkah mengintegrasikan teknologi cloud terbaru
+                untuk manajemen aset fisik. Kami memastikan setiap data yang
+                Anda kelola memiliki tingkat enkripsi militer dan kemudahan
+                akses real-time.
               </p>
 
               <div className="grid grid-cols-2 gap-8 mb-12">
                 <div>
-                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">500+</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Partners</div>
+                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">
+                    500+
+                  </div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Active Partners
+                  </div>
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">100%</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Uptime Cloud</div>
+                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">
+                    100%
+                  </div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Uptime Cloud
+                  </div>
                 </div>
               </div>
 
@@ -311,31 +371,43 @@ export default function LandingPage() {
                 </div>
               </motion.button>
             </motion.div>
-
           </div>
         </div>
       </section>
 
       {/* 🏁 Footer */}
-      <footer id="contact" className="bg-[#0A0C10] pt-32 pb-16 text-white overflow-hidden relative">
+      <footer
+        id="contact"
+        className="bg-[#0A0C10] pt-32 pb-16 text-white overflow-hidden relative"
+      >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-16 mb-24">
-
             <div className="space-y-8">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 relative bg-white rounded-xl p-2">
-                  <Image src="/logo-removebg-pt.png" alt="Logo" fill className="object-contain" />
+                  <Image
+                    src="/logo-removebg-pt.png"
+                    alt="Logo"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                <span className="text-xl font-black tracking-tighter">PT GUDANG BARU</span>
+                <span className="text-xl font-black tracking-tighter">
+                  PT GUDANG BARU
+                </span>
               </div>
               <p className="text-slate-500 font-medium leading-relaxed">
-                Menyediakan solusi infrastruktur masa depan untuk ekosistem industri yang lebih cerdas dan terintegrasi.
+                Menyediakan solusi infrastruktur masa depan untuk ekosistem
+                industri yang lebih cerdas dan terintegrasi.
               </p>
               <div className="flex gap-4">
-                {["In", "Tw", "Ig"].map(soc => (
-                  <div key={soc} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-xs hover:bg-amber-500 transition-colors cursor-pointer">
+                {["In", "Tw", "Ig"].map((soc) => (
+                  <div
+                    key={soc}
+                    className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-xs hover:bg-amber-500 transition-colors cursor-pointer"
+                  >
                     {soc}
                   </div>
                 ))}
@@ -343,10 +415,20 @@ export default function LandingPage() {
             </div>
 
             <div className="lg:ml-auto">
-              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Navigation</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
+                Navigation
+              </h4>
               <ul className="space-y-4 font-bold text-slate-400">
-                {["Company Profile", "Product Stack", "Security Protocol", "Contact Lab"].map(link => (
-                  <li key={link} className="hover:text-white transition-colors cursor-pointer flex items-center gap-2 group">
+                {[
+                  "Company Profile",
+                  "Product Stack",
+                  "Security Protocol",
+                  "Contact Lab",
+                ].map((link) => (
+                  <li
+                    key={link}
+                    className="hover:text-white transition-colors cursor-pointer flex items-center gap-2 group"
+                  >
                     <div className="w-1 h-1 bg-amber-500 rounded-full opacity-0 group-hover:opacity-100 transition-all" />
                     {link}
                   </li>
@@ -355,16 +437,30 @@ export default function LandingPage() {
             </div>
 
             <div className="lg:ml-auto">
-              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Compliance</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
+                Compliance
+              </h4>
               <ul className="space-y-4 font-bold text-slate-400">
-                {["Privacy Policy", "SLA Agreement", "Security Audit", "ISO Certification"].map(link => (
-                  <li key={link} className="hover:text-white transition-colors cursor-pointer">{link}</li>
+                {[
+                  "Privacy Policy",
+                  "SLA Agreement",
+                  "Security Audit",
+                  "ISO Certification",
+                ].map((link) => (
+                  <li
+                    key={link}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    {link}
+                  </li>
                 ))}
               </ul>
             </div>
 
             <div className="lg:ml-auto">
-              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Base Ops</h4>
+              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
+                Base Ops
+              </h4>
               <p className="text-slate-400 font-bold leading-relaxed italic">
                 Treasury Tower Lvl 52 <br />
                 SCBD Business District <br />
@@ -378,7 +474,8 @@ export default function LandingPage() {
               &copy; 2026 PT GUDANG BARU BERKAH. GLOBAL LOGISTICS NODE.
             </p>
             <div className="flex items-center gap-2 text-slate-600 text-[11px] font-bold">
-              ENCRYPTED CONNECTION <ShieldCheck size={14} className="text-emerald-500" />
+              ENCRYPTED CONNECTION{" "}
+              <ShieldCheck size={14} className="text-emerald-500" />
             </div>
           </div>
         </div>
