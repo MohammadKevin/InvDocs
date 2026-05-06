@@ -201,7 +201,7 @@ export default function LandingPage() {
                   href="/register"
                   className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-900 text-white"
                 >
-                  Get Started
+                  Register
                 </Link>
               </div>
             </motion.div>
