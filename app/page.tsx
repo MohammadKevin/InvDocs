@@ -51,11 +51,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden">
       {/* 🚀 Header / Navigation */}
       <nav
-        className={`fixed w-full z-[100] transition-all duration-500 ${
-          isScrolled
+        className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled
             ? "bg-white/70 backdrop-blur-xl py-4 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] border-b border-slate-100"
             : "bg-transparent py-8"
-        }`}
+          }`}
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
           <motion.div
@@ -162,17 +161,30 @@ export default function LandingPage() {
 
               {/* Menu Items */}
               <div className="space-y-6 flex-1">
-                {["Home", "About", "Contact"].map((item, i) => (
+                {[
+                  {
+                    label: "Home",
+                    href: "#home",
+                  },
+                  {
+                    label: "About",
+                    href: "#about",
+                  },
+                  {
+                    label: "Contact",
+                    href: "#contact",
+                  },
+                ].map((item, i) => (
                   <motion.a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
+                    key={item.label}
+                    href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                     className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
                   >
-                    {item}
+                    {item.label}
                   </motion.a>
                 ))}
               </div>
