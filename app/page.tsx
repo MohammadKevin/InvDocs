@@ -152,20 +152,20 @@ export default function LandingPage() {
                 </button>
               </div>
               <div className="space-y-6">
-  {[
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
-  ].map((item) => (
-    <a
-      key={item.name}
-      href={item.href}
-      className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
-    >
-      {item.name}
-    </a>
-  ))}
-</div>
+                {[
+                  { name: "Home", href: "/" },
+                  { name: "About", href: "/about" },
+                  { name: "Contact", href: "/contact" },
+                ].map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </div>
               <div className="absolute bottom-10 left-8 right-8 space-y-4">
                 <Link
                   href="/login"
@@ -207,7 +207,6 @@ export default function LandingPage() {
               variants={staggerContainer}
               className="relative z-10"
             >
-
               <motion.h1
                 variants={fadeIn}
                 className="text-6xl md:text-[84px] font-black text-slate-900 leading-[0.95] mb-8 tracking-tighter"
