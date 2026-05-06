@@ -218,9 +218,9 @@ export default function LandingPage() {
                 variants={fadeIn}
                 className="text-6xl md:text-[84px] font-black text-slate-900 leading-[0.95] mb-8 tracking-tighter"
               >
-                Transformasi <br />
+                Penyimpanan <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-amber-600">
-                  Logistik Digital
+                  Dokumen Digital
                 </span>
               </motion.h1>
 
@@ -228,9 +228,8 @@ export default function LandingPage() {
                 variants={fadeIn}
                 className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg mb-12 font-medium"
               >
-                Sistem ekosistem pergudangan cerdas yang dirancang untuk
-                efisiensi maksimal, transparansi data, dan skalabilitas industri
-                manufaktur.
+                Kelola dokumen digital dengan aman, cepat, dan terstruktur dalam
+                satu sistem terpusat.
               </motion.p>
 
               <motion.div variants={fadeIn} className="flex flex-wrap gap-5">
@@ -431,8 +430,8 @@ export default function LandingPage() {
                 </span>
               </div>
               <p className="text-slate-500 font-medium leading-relaxed">
-                Menyediakan solusi infrastruktur masa depan untuk ekosistem
-                industri yang lebih cerdas dan terintegrasi.
+                Platform digital untuk mendukung efisiensi, keamanan, dan
+                integrasi dalam pengelolaan data dan dokumen industri.
               </p>
               <div className="flex gap-4">
                 {["In", "Tw", "Ig"].map((soc) => (
