@@ -454,6 +454,7 @@ export default function LandingPage() {
                     <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6 1.1 6 0 4.88 0 3.5 0 2.12 1.1 1 2.48 1 3.86 1 4.98 2.12 4.98 3.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.3 2.4-2.6 4.9-2.6 5.2 0 6.2 3.4 6.2 7.8V24h-5v-7.5c0-1.8 0-4.1-2.5-4.1s-2.9 1.9-2.9 4V24h-5V8z" />
                   </svg>
                 </a>
+                
                 <a
                   href="https://www.instagram.com/gajahbaruofficial"
                   target="_blank"
@@ -469,6 +470,22 @@ export default function LandingPage() {
                     <path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zm0 2h8.5C18.22 4 20 5.78 20 7.75v8.5c0 1.97-1.78 3.75-3.75 3.75h-8.5C5.78 20 4 18.22 4 16.25v-8.5C4 5.78 5.78 4 7.75 4zm9.25 1.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zM12 7a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6z" />
                   </svg>
                 </a>
+                
+                <a
+                  href="https://www.facebook.com/gajahbaruofficial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-gradient-to-tr hover:from-blue-500 hover:to-blue-700 transition-all"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="white"
+                    className="w-5 h-5"
+                  >
+                    <path d="M22 12a10 10 0 10-11.5 9.95v-7.05h-2.7V12h2.7V9.8c0-2.66 1.59-4.13 4.02-4.13 1.17 0 2.4.21 2.4.21v2.63h-1.35c-1.33 0-1.75.83-1.75 1.68V12h2.98l-.48 2.9h-2.5v7.05A10 10 0 0022 12z" />
+                  </svg>
+                </a>
               </div>
             </div>
 
@@ -477,11 +494,7 @@ export default function LandingPage() {
                 Navigation
               </h4>
               <ul className="space-y-4 font-bold text-slate-400">
-                {[
-                  "Home",
-                  "About",
-                  "Contact",
-                ].map((link) => (
+                {["Home", "About", "Contact"].map((link) => (
                   <li
                     key={link}
                     className="hover:text-white transition-colors cursor-pointer flex items-center gap-2 group"
@@ -497,34 +510,62 @@ export default function LandingPage() {
               <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
                 Contact
               </h4>
+
               <ul className="space-y-4 font-bold text-slate-400">
                 {[
-                  "(0341) 397234",
-                  "gajahbaru.id@gmail.com",
-                  "https://gajahbaruofficial.com",
-                  "https://www.instagram.com/gajahbaruofficial",
-                  "https://www.facebook.com/gajahbaruofficial",
-                ].map((link) => (
-                  <li
-                    key={link}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    {link}
+                  {
+                    label: "(0341) 397234",
+                    href: "tel:0341397234",
+                  },
+                  {
+                    label: "gajahbaru.id@gmail.com",
+                    href: "mailto:gajahbaru.id@gmail.com",
+                  },
+                  {
+                    label: "gajahbaruofficial.com",
+                    href: "https://gajahbaruofficial.com",
+                  },
+                  {
+                    label: "Instagram",
+                    href: "https://www.instagram.com/gajahbaruofficial",
+                  },
+                  {
+                    label: "Facebook",
+                    href: "https://www.facebook.com/gajahbaruofficial",
+                  },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors cursor-pointer"
+                    >
+                      {item.label}
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="lg:ml-auto">
-              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
-                Base Ops
-              </h4>
-              <p className="text-slate-400 font-bold leading-relaxed italic">
-                Jl. Probolinggo No.162, <br />
-                Penarukan, Kepanjen,
-                <br />
-                Malang, Jawa Timur
-              </p>
+              <a
+                href="https://www.google.com/maps?q=PT+Gudang+Baru+Berkah+Kepanjen+Malang"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block lg:ml-auto group"
+              >
+                <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
+                  Location
+                </h4>
+
+                <p className="text-slate-400 font-bold leading-relaxed italic group-hover:text-white transition-colors cursor-pointer">
+                  Jl. Probolinggo No.162, <br />
+                  Penarukan, Kepanjen,
+                  <br />
+                  Malang, Jawa Timur
+                </p>
+              </a>
             </div>
           </div>
 
