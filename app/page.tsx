@@ -454,7 +454,7 @@ export default function LandingPage() {
                     <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6 1.1 6 0 4.88 0 3.5 0 2.12 1.1 1 2.48 1 3.86 1 4.98 2.12 4.98 3.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.3 2.4-2.6 4.9-2.6 5.2 0 6.2 3.4 6.2 7.8V24h-5v-7.5c0-1.8 0-4.1-2.5-4.1s-2.9 1.9-2.9 4V24h-5V8z" />
                   </svg>
                 </a>
-                
+
                 <a
                   href="https://www.instagram.com/gajahbaruofficial"
                   target="_blank"
@@ -524,6 +524,10 @@ export default function LandingPage() {
                   {
                     label: "gajahbaruofficial.com",
                     href: "https://gajahbaruofficial.com",
+                  },
+                  {
+                    label: "LinkedIn",
+                    href: "https://www.linkedin.com/company/pt-gbb/?originalSubdomain=id",
                   },
                   {
                     label: "Instagram",
