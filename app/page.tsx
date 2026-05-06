@@ -427,7 +427,7 @@ export default function LandingPage() {
                   />
                 </div>
                 <span className="text-xl font-black tracking-tighter">
-                  PT GUDANG BARU
+                  PT GUDANG BARU BERKAH
                 </span>
               </div>
               <p className="text-slate-500 font-medium leading-relaxed">
