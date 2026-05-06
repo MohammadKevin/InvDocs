@@ -88,8 +88,8 @@ export default function AdminRackLayout({ children }: { children: React.ReactNod
                         <div className="h-8 w-px bg-slate-200" />
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-bold text-slate-800">Rack Admin</p>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Section Alpha</p>
+                                <p className="text-sm font-bold text-slate-800">Choqie</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Admin Rack Choqie</p>
                             </div>
                             <div className="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
                                 <UserCircle size={24} />

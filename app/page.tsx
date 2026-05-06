@@ -36,6 +36,7 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
+  const MotionLink = motion(Link);
 
   // Parallax effects
   const y1 = useTransform(scrollY, [0, 500], [0, 100]);
@@ -51,10 +52,11 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden">
       {/* 🚀 Header / Navigation */}
       <nav
-        className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled
+        className={`fixed w-full z-[100] transition-all duration-500 ${
+          isScrolled
             ? "bg-white/70 backdrop-blur-xl py-4 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] border-b border-slate-100"
             : "bg-transparent py-8"
-          }`}
+        }`}
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
           <motion.div
@@ -81,7 +83,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-10 pr-16">
             <div className="flex items-center gap-8">
               {["Home", "About", "Contact"].map((item) => (
                 <a
@@ -93,24 +95,6 @@ export default function LandingPage() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-500 transition-all group-hover:w-full" />
                 </a>
               ))}
-            </div>
-
-            <div className="flex items-center gap-4 border-l pl-10 border-slate-200">
-              <Link
-                href="/login"
-                className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                Log In
-              </Link>
-              <Link href="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-slate-900 text-white px-7 py-3 rounded-2xl text-sm font-bold shadow-[0_10px_20px_-5px_rgba(0,0,0,0.2)] hover:bg-slate-800 transition-all"
-                >
-                  Create Account
-                </motion.div>
-              </Link>
             </div>
           </div>
 
@@ -201,7 +185,7 @@ export default function LandingPage() {
                   href="/register"
                   className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-900 text-white"
                 >
-                  Register
+                  Create Account
                 </Link>
               </div>
             </motion.div>
@@ -249,27 +233,31 @@ export default function LandingPage() {
                 satu sistem terpusat.
               </motion.p>
 
-              <motion.div variants={fadeIn} className="flex flex-wrap gap-5">
-                <motion.button
+              <motion.div className="flex flex-wrap gap-5">
+                <MotionLink
+                  href="/register"
                   whileHover={{
                     y: -4,
                     boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
                   }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-10 py-5 bg-slate-900 text-white rounded-[20px] font-bold flex items-center gap-3 group transition-all"
+                  className="inline-flex px-6 py-4 bg-slate-900 text-white rounded-[20px] font-bold items-center gap-3 group transition-all"
                 >
-                  Start Integration
+                  Create Account
                   <ChevronRight
                     size={18}
                     className="group-hover:translate-x-1 transition-transform"
                   />
-                </motion.button>
-                <motion.button
-                  whileHover={{ background: "#f8fafc" }}
-                  className="px-10 py-5 border-2 border-slate-200 text-slate-900 rounded-[20px] font-bold transition-all hover:border-slate-300"
+                </MotionLink>
+
+                <MotionLink
+                  href="/login"
+                  whileHover={{ y: -2, background: "#f8fafc" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex px-6 py-4 border-2 border-slate-200 text-slate-900 rounded-[20px] font-bold items-center justify-center transition-all hover:border-slate-300"
                 >
-                  Explore Features
-                </motion.button>
+                  Login
+                </MotionLink>
               </motion.div>
             </motion.div>
 
