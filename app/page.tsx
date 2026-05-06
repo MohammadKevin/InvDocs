@@ -125,12 +125,15 @@ export default function LandingPage() {
       </nav>
 
       {/* 📱 Mobile Menu */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden={!mobileMenuOpen}
             className="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm lg:hidden"
           >
             <motion.div
@@ -138,35 +141,44 @@ export default function LandingPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute right-0 top-0 h-full w-[80%] bg-white p-8 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              className="absolute right-0 top-0 h-full w-[80%] bg-white p-8 shadow-2xl flex flex-col"
             >
-              <div className="flex justify-between items-center mb-16">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-12">
                 <span className="font-black text-xl tracking-tighter uppercase">
                   Menu
                 </span>
                 <button
+                  aria-label="Close Menu"
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2 bg-slate-100 rounded-full"
                 >
                   <X size={24} />
                 </button>
               </div>
-              <div className="space-y-6">
-                {[
-                  { name: "Home", href: "/" },
-                  { name: "About", href: "/about" },
-                  { name: "Contact", href: "/contact" },
-                ].map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
+
+              {/* Menu Items */}
+              <div className="space-y-6 flex-1">
+                {["Home", "About", "Contact"].map((item, i) => (
+                  <motion.a
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
                     className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
                   >
-                    {item.name}
-                  </a>
+                    {item}
+                  </motion.a>
                 ))}
               </div>
-              <div className="absolute bottom-10 left-8 right-8 space-y-4">
+
+              {/* Bottom Buttons */}
+              <div className="space-y-4">
                 <Link
                   href="/login"
                   className="block w-full text-center py-4 rounded-2xl font-bold bg-slate-100"
