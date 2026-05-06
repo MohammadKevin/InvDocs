@@ -525,7 +525,7 @@ export default function LandingPage() {
 
           <div className="pt-12 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-slate-600 text-[11px] font-bold tracking-widest uppercase">
-              &copy; 2026 PT GUDANG BARU BERKAH. GLOBAL LOGISTICS NODE.
+              &copy; 2026 PT GUDANG BARU BERKAH.
             </p>
             <div className="flex items-center gap-2 text-slate-600 text-[11px] font-bold">
               ENCRYPTED CONNECTION{" "}
