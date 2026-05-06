@@ -152,10 +152,10 @@ export default function LandingPage() {
                 </button>
               </div>
               <div className="space-y-6">
-                {["Home", "About", "Services", "Contact"].map((item) => (
+                {["Home", "About", "Contact"].map((item) => (
                   <a
                     key={item}
-                    href="#"
+                    href="/home"
                     className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
                   >
                     {item}
@@ -182,7 +182,10 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* 🏗️ Hero Section */}
-      <section className="relative pt-44 pb-20 md:pt-60 md:pb-40 overflow-hidden">
+      <section
+        id="home"
+        className="relative pt-28 pb-20 md:pt-36 md:pb-32 overflow-hidden"
+      >
         {/* Animated Background Gradients */}
         <motion.div
           style={{ y: y1 }}
@@ -259,62 +262,59 @@ export default function LandingPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative w-full h-[500px]" // 👈 Pastikan ada H- (height) yang jelas di sini
+              className="relative w-full h-[500px]"
             >
-              <div className="relative h-full w-full bg-slate-200 rounded-[48px] overflow-hidden shadow-2xl border border-slate-100">
-                <Image
-                  src="/perusahaan.jpeg"
-                  alt="Infrastructure"
-                  fill
-                  priority // 👈 Tambahkan ini agar diload paling awal
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover transition-transform duration-[2s] hover:scale-105"
-                  onError={(e) => console.log("Gagal load gambar:", e)} // 👈 Cek di console log browser (F12)
-                />
-                {/* Overlay agar teks tetap terbaca */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none" />
-              </div>
-              {/* Label Lokasi/Status di pojok foto */}
+              {/* Frame utama (dari versi pertama) */}
+              <div className="relative h-full w-full bg-white p-4 rounded-[2.5rem] shadow-2xl border border-slate-100">
+                {/* Inner image container */}
+                <div className="relative h-full w-full rounded-[2rem] overflow-hidden">
+                  <Image
+                    src="/perusahaan.jpeg"
+                    alt="Fasilitas PT Gudang Baru"
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-[2s] hover:scale-110"
+                  />
+
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
+
+                  {/* Label lokasi */}
                   <div className="absolute top-6 right-6">
                     <span className="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full border border-white/30">
                       📍 Head Office, Malang
                     </span>
                   </div>
 
-              {/* Card Melayang */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -bottom-6 -left-6 z-20 bg-white p-5 rounded-3xl shadow-xl border border-slate-50"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center">
-                    <ShieldCheck size={24} />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                      Status
-                    </div>
-                    <div className="text-lg font-bold text-slate-900">
-                      Protected
-                    </div>
+                  {/* Teks dalam gambar */}
+                  <div className="absolute bottom-8 left-8 right-8">
+                    <h3 className="text-white text-2xl font-bold mb-2">
+                      Fasilitas Modern
+                    </h3>
+                    <p className="text-slate-200 text-sm leading-relaxed">
+                      Sistem manajemen gudang terintegrasi dengan standar
+                      keamanan internasional.
+                    </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* 🏢 About Section (Bento Inspired) */}
-      <section id="about" className="py-32 bg-white relative">
+      <section id="about" className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-12 gap-16 items-center">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            {/* Bagian Kiri: Visual/Image */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="lg:col-span-7 relative group"
+              className="flex-1 relative"
             >
               <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <iframe
@@ -326,39 +326,64 @@ export default function LandingPage() {
                   className="rounded-2xl"
                 ></iframe>
               </div>
+
+              {/* Floating Card */}
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                transition={{ delay: 0.5 }}
+                viewport={{ once: true }}
+                className="absolute -bottom-6 -right-6 bg-[#F2C547] p-8 rounded-xl hidden md:block shadow-xl"
+              >
+                <p className="text-slate-900 font-bold text-4xl">#1</p>
+                <p className="text-slate-800 text-sm font-medium">
+                  Solusi Logistik &<br /> Pergudangan
+                </p>
+              </motion.div>
             </motion.div>
 
+            {/* Bagian Kanan: Konten Teks */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="lg:col-span-5"
+              className="flex-1"
             >
-              <div className="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest mb-6">
-                Core Philosophy
-              </div>
-              <h2 className="text-5xl font-black text-slate-900 mb-8 tracking-tighter leading-[1.1]">
-                Leading the <br />{" "}
-                <span className="text-slate-400">Next-Gen</span> Logistics
+              <h4 className="text-[#F2C547] font-bold tracking-widest uppercase text-sm mb-4">
+                Tentang Kami
+              </h4>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
+                Membangun Masa Depan{" "}
+                <span className="text-slate-500">Logistik Indonesia</span>
               </h2>
-              <p className="text-slate-500 text-lg leading-relaxed mb-10 font-medium">
-                PT Gudang Baru Berkah mengintegrasikan teknologi cloud terbaru
-                untuk manajemen aset fisik. Kami memastikan setiap data yang
-                Anda kelola memiliki tingkat enkripsi militer dan kemudahan
-                akses real-time.
+              <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+                <span className="font-bold text-slate-900">
+                  PT. Gudang Baru Berkah
+                </span>{" "}
+                menghadirkan platform digital untuk menyimpan dan mengelola data
+                secara aman, terstruktur, dan mudah diakses. Berlokasi di
+                Kepanjen, Malang, sistem ini dirancang untuk mendukung kebutuhan
+                administrasi dan operasional perusahaan secara efisien. Melalui
+                platform ini, pengguna dapat mengunggah, menyimpan, serta
+                mengorganisir berbagai dokumen penting dengan lebih praktis,
+                sehingga proses pengelolaan dan pencarian data menjadi lebih
+                cepat, akurat, dan terpercaya.
               </p>
 
+              {/* Statistik */}
               <div className="grid grid-cols-2 gap-8 mb-12">
                 <div>
-                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">
+                  <div className="text-4xl font-black text-slate-900 mb-1 leading-none">
                     500+
                   </div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                     Active Partners
                   </div>
                 </div>
+
                 <div>
-                  <div className="text-3xl font-black text-slate-900 mb-1 leading-none">
+                  <div className="text-4xl font-black text-slate-900 mb-1 leading-none">
                     100%
                   </div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -367,13 +392,14 @@ export default function LandingPage() {
                 </div>
               </div>
 
+              {/* Button */}
               <motion.button
-                whileHover={{ gap: "20px" }}
-                className="flex items-center gap-3 text-slate-900 font-black text-sm group uppercase tracking-widest"
+                whileHover={{ x: 10 }}
+                className="flex items-center gap-3 text-slate-900 font-bold group"
               >
-                Learn Mission Protocol
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all shadow-sm">
-                  <ArrowRight size={20} />
+                Pelajari Visi Misi Kami
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-[#F2C547] transition-colors">
+                  <Truck size={18} />
                 </div>
               </motion.button>
             </motion.div>
@@ -468,9 +494,10 @@ export default function LandingPage() {
                 Base Ops
               </h4>
               <p className="text-slate-400 font-bold leading-relaxed italic">
-                Treasury Tower Lvl 52 <br />
-                SCBD Business District <br />
-                South Jakarta, ID 12190
+                Jl. Probolinggo No.162, <br />
+                Penarukan, Kepanjen,
+                <br />
+                Malang, Jawa Timur
               </p>
             </div>
           </div>

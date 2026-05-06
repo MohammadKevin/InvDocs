@@ -11,7 +11,7 @@ export default function RacksPage() {
         name: "",
         email: "",
         password: "",
-        rackName: ""
+        name_rack: ""
     });
 
     const [racks, setRacks] = useState([]);

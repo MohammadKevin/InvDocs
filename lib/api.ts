@@ -1,16 +1,20 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://invdocs-api-production.up.railway.app/api";
 
+// 🔥 Create instance
 export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
 });
 
+// =======================
+// 🔐 REQUEST INTERCEPTOR
+// =======================
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
 
@@ -24,27 +28,64 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// =======================
+// ❌ RESPONSE INTERCEPTOR
+// =======================
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<any>) => {
     if (typeof window !== "undefined") {
       const status = error.response?.status;
+      const data = error.response?.data;
 
+      // 🔥 Extract message dari NestJS
+      let message = "Terjadi kesalahan";
+
+      if (data) {
+        if (typeof data.message === "string") {
+          message = data.message;
+        } else if (Array.isArray(data.message)) {
+          message = data.message.join(", ");
+        } else if (data.error) {
+          message = data.error;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      // ✅ LOG DETAIL (FIX)
+      console.error("API ERROR DETAIL:", {
+        status,
+        message,
+        data,
+        url: error.config?.url,
+        method: error.config?.method,
+      });
+
+      // 🔍 FULL ERROR (buat debug)
+      console.error("FULL ERROR OBJECT:", error);
+
+      // 🔐 Auto logout kalau 401
       if (status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login";
       }
 
-      // optional: tampilkan error message dari backend
-      console.error("API ERROR:", error.response?.data || error.message);
+      // 🔥 Return error yang sudah clean
+      return Promise.reject({
+        status,
+        message,
+        data,
+      });
     }
 
     return Promise.reject(error);
   }
 );
 
-export default api;
-
+// =======================
+// 📤 UPLOAD FILE
+// =======================
 export const uploadFile = async (
   url: string,
   file: File,
@@ -67,7 +108,10 @@ export const uploadFile = async (
   });
 };
 
-export const downloadFile = async (url: string) => {
+// =======================
+// 📥 DOWNLOAD FILE
+// =======================
+export const downloadFile = async (url: string, filename = "file") => {
   const res = await api.get(url, {
     responseType: "blob",
   });
@@ -76,9 +120,11 @@ export const downloadFile = async (url: string) => {
   const link = document.createElement("a");
 
   link.href = window.URL.createObjectURL(blob);
-  link.download = "file";
+  link.download = filename;
 
   document.body.appendChild(link);
   link.click();
   link.remove();
 };
+
+export default api;
