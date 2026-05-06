@@ -2,15 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Archive, Search, Filter, Loader2, AlertCircle, Calendar, Layers } from "lucide-react";
+import {
+  Archive,
+  Search,
+  Filter,
+  Loader2,
+  AlertCircle,
+  Calendar,
+  Layers,
+} from "lucide-react";
 import { api } from "@/lib/api";
 
 interface Box {
   id: string;
-  name_box: string;
-  description: string;
-  rackId: string;
-  rack?: {
+  name: string;
+  code: string;
+  rack: {
     name: string;
   };
   createdAt: string;
@@ -25,6 +32,7 @@ export default function BoxesPage() {
     const fetchBoxes = async () => {
       try {
         setLoading(true);
+        // Mengambil data dari endpoint https://invdocs-api-production.up.railway.app/api/boxes
         const res = await api.get("/boxes");
         setBoxes(res.data);
       } catch (err) {
@@ -37,17 +45,15 @@ export default function BoxesPage() {
     fetchBoxes();
   }, []);
 
+  // Filter UI
+  const keyword = (searchTerm || "").toLowerCase();
+
   const filteredBoxes = boxes.filter((box) => {
-  const search = searchTerm.toLowerCase();
+    const name = box.name?.toLowerCase() || "";
+    const code = box.code?.toLowerCase() || "";
 
-  const name = (box.name_box || "").toLowerCase();
-  const description = (box.description || "").toLowerCase();
-
-  return (
-    name.includes(search) ||
-    description.includes(search)
-  );
-});
+    return name.includes(keyword) || code.includes(keyword);
+  });
 
   return (
     <div className="space-y-8">
@@ -61,12 +67,15 @@ export default function BoxesPage() {
             Monitoring all container distributions across registered racks.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="relative group font-bold">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-            <input 
-              type="text" 
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
+              size={18}
+            />
+            <input
+              type="text"
               placeholder="Search code or name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -90,18 +99,20 @@ export default function BoxesPage() {
       ) : filteredBoxes.length === 0 ? (
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] py-24 text-center">
           <AlertCircle className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No boxes found in inventory</p>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+            No boxes found in inventory
+          </p>
         </div>
       ) : (
-        <motion.div 
+        <motion.div
           initial="initial"
           animate="animate"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence mode="popLayout">
             {filteredBoxes.map((box, i) => (
-              <motion.div 
-                key={box.id} 
+              <motion.div
+                key={box.id}
                 layout
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -126,22 +137,31 @@ export default function BoxesPage() {
                 </div>
 
                 <div className="space-y-1 mb-6">
-                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-                    {box.name_box}
-                  </h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">
+                    ID: {box.code || box.id.slice(0, 8)}
+                  </p>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
+                    {box.name}
+                  </h3>
                 </div>
 
                 <div className="space-y-3 pt-5 border-t border-slate-50 font-bold">
                   <div className="flex items-center gap-2 text-slate-500 text-xs">
                     <Layers size={14} className="text-slate-300" />
                     <span>Rack:</span>
-                    <span className="text-slate-900 italic">{box.rack?.name || "Unassigned"}</span>
+                    <span className="text-slate-900 italic">
+                      {box.rack?.name || "Unassigned"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-500 text-xs">
                     <Calendar size={14} className="text-slate-300" />
                     <span>Deployed:</span>
                     <span className="text-slate-900 font-medium">
-                      {new Date(box.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(box.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </span>
                   </div>
                 </div>
