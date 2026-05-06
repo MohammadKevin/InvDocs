@@ -10,9 +10,6 @@ export const api = axios.create({
   timeout: 15000,
 });
 
-// =======================
-// 🔐 REQUEST INTERCEPTOR
-// =======================
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
@@ -28,9 +25,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// =======================
-// ❌ RESPONSE INTERCEPTOR
-// =======================
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<any>) => {
@@ -38,7 +32,6 @@ api.interceptors.response.use(
       const status = error.response?.status;
       const data = error.response?.data;
 
-      // 🔥 Extract message dari NestJS
       let message = "Terjadi kesalahan";
 
       if (data) {
@@ -52,8 +45,6 @@ api.interceptors.response.use(
       } else if (error.message) {
         message = error.message;
       }
-
-      // ✅ LOG DETAIL (FIX)
       console.error("API ERROR DETAIL:", {
         status,
         message,
