@@ -203,16 +203,6 @@ export default function LandingPage() {
               variants={staggerContainer}
               className="relative z-10"
             >
-              <motion.div
-                variants={fadeIn}
-                className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-white shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 text-slate-600 text-[11px] font-black uppercase tracking-[0.15em] mb-8"
-              >
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                Smart Management v2.0
-              </motion.div>
 
               <motion.h1
                 variants={fadeIn}
