@@ -494,16 +494,17 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="lg:ml-auto">
+            <div id="contact" className="lg:ml-auto">
               <h4 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500 mb-8">
-                Compliance
+                Contact
               </h4>
               <ul className="space-y-4 font-bold text-slate-400">
                 {[
-                  "Privacy Policy",
-                  "SLA Agreement",
-                  "Security Audit",
-                  "ISO Certification",
+                  "(0341) 397234",
+                  "gajahbaru.id@gmail.com",
+                  "https://gajahbaruofficial.com",
+                  "https://www.instagram.com/gajahbaruofficial",
+                  "https://www.facebook.com/gajahbaruofficial",
                 ].map((link) => (
                   <li
                     key={link}
