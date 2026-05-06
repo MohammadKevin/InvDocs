@@ -515,9 +515,11 @@ export default function LandingPage() {
                 {[
                   {
                     label: "(0341) 397234",
+                    href: "tel:0341397234",
                   },
                   {
                     label: "gajahbaru.id@gmail.com",
+                    href: "mailto:gajahbaru.id@gmail.com",
                   },
                   {
                     label: "gajahbaruofficial.com",
