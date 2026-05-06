@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, FileText, UploadCloud, User, 
-  Menu, X, Bell, Search, ChevronDown, LogOut 
+import {
+  LayoutDashboard, FileText, UploadCloud, User,
+  Menu, X, Bell, Search, ChevronDown, LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
@@ -49,9 +49,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link key={item.name} href={item.href}>
                 <motion.div
                   whileHover={{ x: 5 }}
-                  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 ${
-                    isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'text-slate-500 hover:bg-slate-50'
-                  }`}
+                  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'text-slate-500 hover:bg-slate-50'
+                    }`}
                 >
                   <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                   <span className={`text-sm font-bold uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-70'}`}>
@@ -64,10 +63,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="absolute bottom-8 left-0 w-full px-8">
-          <button className="flex items-center gap-4 text-rose-500 font-bold text-xs uppercase tracking-widest hover:translate-x-2 transition-transform">
-            <LogOut size={18} /> Logout
-          </button>
+        <div className="p-4 border-t border-slate-100">
+          <Link
+            href="/#"
+            className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+          >
+            <LogOut size={20} />
+            Sign Out
+          </Link>
         </div>
       </aside>
 
