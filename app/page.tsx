@@ -152,16 +152,20 @@ export default function LandingPage() {
                 </button>
               </div>
               <div className="space-y-6">
-                {["Home", "About", "Contact"].map((item) => (
-                  <a
-                    key={item}
-                    href="/home"
-                    className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
-                  >
-                    {item}
-                  </a>
-                ))}
-              </div>
+  {[
+    { name: "Home", href: "/" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
+  ].map((item) => (
+    <a
+      key={item.name}
+      href={item.href}
+      className="block text-4xl font-black text-slate-900 hover:text-amber-500 transition-colors"
+    >
+      {item.name}
+    </a>
+  ))}
+</div>
               <div className="absolute bottom-10 left-8 right-8 space-y-4">
                 <Link
                   href="/login"
