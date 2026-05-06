@@ -48,8 +48,8 @@ export default function AdminRackLayout({ children }: { children: React.ReactNod
                                 <motion.div
                                     whileHover={{ x: 5 }}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${isActive
-                                            ? "bg-blue-50 text-blue-600 shadow-sm"
-                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                        ? "bg-blue-50 text-blue-600 shadow-sm"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                         }`}
                                 >
                                     <item.icon size={20} />
@@ -60,11 +60,14 @@ export default function AdminRackLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                <div className="p-6 border-t border-slate-100">
-                    <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors">
+                <div className="p-4 border-t border-slate-100">
+                    <Link
+                        href="/login"
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    >
                         <LogOut size={20} />
                         Sign Out
-                    </button>
+                    </Link>
                 </div>
             </aside>
 

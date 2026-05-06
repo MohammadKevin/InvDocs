@@ -57,16 +57,13 @@ export default function RacksPage() {
         }
     };
 
-    // --- 3. LOGIKA APPROVE & REJECT ---
     const handleStatusUpdate = async (id: string, type: 'approve' | 'reject') => {
         try {
             setActionLoading(id); // Set loading spesifik untuk baris ini
             await api.patch(`/rack/${id}/${type}`);
             
             alert(`Rak berhasil di-${type === 'approve' ? 'setujui' : 'tolak'}!`);
-            
-            // Hapus dari list secara lokal (Optimistic Update)
-            setRacks((prev) => prev.filter((r) => r.id !== id));
+            fetchPendingRacks();
         } catch (err: any) {
             alert(err.response?.data?.message || `Gagal melakukan ${type}`);
         } finally {

@@ -50,8 +50,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                                 <motion.div
                                     whileHover={{ x: 4 }}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
-                                            ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100"
-                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                        ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                         }`}
                                 >
                                     <item.icon size={20} />
@@ -63,10 +63,13 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 </nav>
 
                 <div className="p-4 border-t border-slate-100">
-                    <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                    <Link
+                        href="/#"
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    >
                         <LogOut size={20} />
                         Sign Out
-                    </button>
+                    </Link>
                 </div>
             </aside>
 

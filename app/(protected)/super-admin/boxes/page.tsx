@@ -7,9 +7,10 @@ import { api } from "@/lib/api";
 
 interface Box {
   id: string;
-  name: string;
-  code: string;
-  rack: {
+  name_box: string;
+  description: string;
+  rackId: string;
+  rack?: {
     name: string;
   };
   createdAt: string;
@@ -24,7 +25,6 @@ export default function BoxesPage() {
     const fetchBoxes = async () => {
       try {
         setLoading(true);
-        // Mengambil data dari endpoint https://invdocs-api-production.up.railway.app/api/boxes
         const res = await api.get("/boxes");
         setBoxes(res.data);
       } catch (err) {
@@ -37,11 +37,17 @@ export default function BoxesPage() {
     fetchBoxes();
   }, []);
 
-  // Filter UI
-  const filteredBoxes = boxes.filter((box) =>
-    box.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    box.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBoxes = boxes.filter((box) => {
+  const search = searchTerm.toLowerCase();
+
+  const name = (box.name_box || "").toLowerCase();
+  const description = (box.description || "").toLowerCase();
+
+  return (
+    name.includes(search) ||
+    description.includes(search)
   );
+});
 
   return (
     <div className="space-y-8">

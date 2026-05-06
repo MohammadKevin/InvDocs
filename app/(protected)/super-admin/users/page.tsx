@@ -81,14 +81,6 @@ export default function UsersPage() {
             Monitoring {users.length} registered system accounts.
           </p>
         </div>
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-[20px] font-bold text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
-        >
-          <UserPlus size={18} />
-          Invite Member
-        </motion.button>
       </div>
 
       {/* SECTION: TABLE CONTAINER */}

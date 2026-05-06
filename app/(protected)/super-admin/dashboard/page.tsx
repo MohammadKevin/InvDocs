@@ -8,7 +8,6 @@ import { api } from "@/lib/api"; //
 export default function DashboardPage() {
   const [stats, setStats] = useState([
     { label: "Total Users", value: "0", icon: Users, color: "blue", key: "users" },
-    { label: "Total Racks", value: "0", icon: Layers, color: "indigo", key: "racks" },
     { label: "Total Boxes", value: "0", icon: Archive, color: "amber", key: "boxes" },
     { label: "Total Documents", value: "0", icon: FileText, color: "emerald", key: "documents" },
   ]);
@@ -18,17 +17,40 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Fetch data secara paralel dari endpoint yang tersedia
-        const [usersRes, racksRes] = await Promise.all([
+
+        // Fetch semua data paralel
+        const [usersRes, boxesRes, documentsRes] = await Promise.all([
           api.get("/users"),
-          api.get("/rack/pending") // Contoh mengambil data rak
+          api.get("/boxes"),
+          api.get("/documents"),
         ]);
 
-        setStats(prev => prev.map(stat => {
-          if (stat.key === "users") return { ...stat, value: usersRes.data.length.toString() };
-          if (stat.key === "racks") return { ...stat, value: racksRes.data.length.toString() };
-          return stat;
-        }));
+        setStats((prev) =>
+          prev.map((stat) => {
+            if (stat.key === "users") {
+              return {
+                ...stat,
+                value: usersRes.data.length.toString(),
+              };
+            }
+
+            if (stat.key === "boxes") {
+              return {
+                ...stat,
+                value: boxesRes.data.length.toString(),
+              };
+            }
+
+            if (stat.key === "documents") {
+              return {
+                ...stat,
+                value: documentsRes.data.length.toString(),
+              };
+            }
+
+            return stat;
+          })
+        );
       } catch (err) {
         console.error("Dashboard sync error:", err);
       } finally {
@@ -48,7 +70,6 @@ export default function DashboardPage() {
         <p className="text-slate-500 text-sm font-medium">Real-time data from InvDocs Cloud Server.</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div
@@ -79,7 +100,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Activity - Bisa dikembangkan dengan fetch ke endpoint /logs jika ada */}
         <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8">
           <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs">Recent System Activity</h3>
           <div className="space-y-6">
@@ -93,14 +113,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Storage Health */}
-        <div className="bg-slate-900 rounded-[2rem] p-8 text-white flex flex-col justify-center items-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
-          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4">Cloud Storage</div>
-          <div className="text-5xl font-black text-blue-400 mb-2">82%</div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">System Load</p>
         </div>
       </div>
     </div>
