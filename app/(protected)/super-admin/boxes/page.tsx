@@ -126,12 +126,9 @@ export default function BoxesPage() {
                 </div>
 
                 <div className="space-y-1 mb-6">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">
-                    ID: {box.code || box.id.slice(0, 8)}
-                  </p>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
-                    {box.name}
-                  </h3>
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                    {box.name_box}
+                  </h2>
                 </div>
 
                 <div className="space-y-3 pt-5 border-t border-slate-50 font-bold">
