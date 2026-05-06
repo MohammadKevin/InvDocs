@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+
 import {
   ShieldCheck,
   Settings,
   Loader2,
 } from "lucide-react";
+
+import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 
@@ -16,7 +19,8 @@ interface Rack {
   createdAt?: string;
 }
 
-const RACK_ID = "0012856e-af9f-487e-b3d1-7b14607de404";
+const RACK_ID =
+  "0012856e-af9f-487e-b3d1-7b14607de404";
 
 export default function RackProfilePage() {
   const [rack, setRack] = useState<Rack | null>(null);
@@ -27,19 +31,33 @@ export default function RackProfilePage() {
 
   const [nameRack, setNameRack] = useState("");
 
+  // =======================
   // FETCH RACK
+  // =======================
   useEffect(() => {
     const fetchRack = async () => {
       try {
         setLoading(true);
 
-        const res = await api.get(`/rack/${RACK_ID}`);
+        const res = await api.get(
+          `/rack/${RACK_ID}`
+        );
+
+        console.log("RACK DATA:", res.data);
 
         setRack(res.data);
 
         setNameRack(res.data?.name_rack || "");
-      } catch (err) {
-        console.error("Failed fetch rack:", err);
+      } catch (err: any) {
+        console.error(
+          "Failed fetch rack:",
+          err
+        );
+
+        toast.error(
+          err?.response?.data?.message ||
+            "Failed fetch rack"
+        );
       } finally {
         setLoading(false);
       }
@@ -48,18 +66,38 @@ export default function RackProfilePage() {
     fetchRack();
   }, []);
 
+  // =======================
   // UPDATE RACK
-  const handleUpdate = async (e: React.FormEvent) => {
+  // =======================
+  const handleUpdate = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
-    if (!rack?.id) return;
+    if (!rack?.id) {
+      toast.error("Rack ID not found");
+      return;
+    }
+
+    if (!nameRack.trim()) {
+      toast.error("Rack name wajib diisi");
+      return;
+    }
 
     try {
       setUpdating(true);
 
-      await api.patch(`/rack/${rack.id}/update`, {
-        name_rack: nameRack,
-      });
+      const response = await api.patch(
+        `/rack/${rack.id}`,
+        {
+          name_rack: nameRack.trim(),
+        }
+      );
+
+      console.log(
+        "UPDATE RESPONSE:",
+        response.data
+      );
 
       setRack((prev) =>
         prev
@@ -70,16 +108,32 @@ export default function RackProfilePage() {
           : null
       );
 
-      alert("Rack updated successfully");
-    } catch (err) {
-      console.error("Update rack failed:", err);
-      alert("Failed update rack");
+      toast.success(
+        "Rack updated successfully"
+      );
+    } catch (err: any) {
+      console.error(
+        "Update rack failed:",
+        err
+      );
+
+      console.log(
+        "BACKEND ERROR:",
+        err?.response?.data
+      );
+
+      toast.error(
+        err?.response?.data?.message ||
+          "Failed update rack"
+      );
     } finally {
       setUpdating(false);
     }
   };
 
+  // =======================
   // LOADING
+  // =======================
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -90,14 +144,15 @@ export default function RackProfilePage() {
 
   return (
     <div className="max-w-4xl space-y-10">
-      {/* Header */}
+      {/* HEADER */}
       <div>
         <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">
           Rack Configuration
         </h1>
 
         <p className="text-slate-500 font-medium pl-1">
-          Personalize your assigned storage identity.
+          Personalize your assigned storage
+          identity.
         </p>
       </div>
 
@@ -109,7 +164,8 @@ export default function RackProfilePage() {
           </div>
 
           <h2 className="text-2xl font-black text-slate-900 leading-none mb-2 tracking-tighter">
-            {rack?.name_rack || "Unnamed Rack"}
+            {rack?.name_rack ||
+              "Unnamed Rack"}
           </h2>
 
           <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full">
@@ -122,11 +178,16 @@ export default function RackProfilePage() {
 
               <span className="text-slate-900 italic font-bold tracking-tight text-xs">
                 {rack?.createdAt
-                  ? new Date(rack.createdAt).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
+                  ? new Date(
+                      rack.createdAt
+                    ).toLocaleDateString(
+                      "id-ID",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      }
+                    )
                   : "-"}
               </span>
             </div>
@@ -136,7 +197,10 @@ export default function RackProfilePage() {
         {/* RIGHT FORM */}
         <div className="md:col-span-2 bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 mb-8">
-            <Settings className="text-blue-600" size={18} />
+            <Settings
+              className="text-blue-600"
+              size={18}
+            />
 
             <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">
               Update Rack Details
@@ -155,7 +219,9 @@ export default function RackProfilePage() {
               <input
                 type="text"
                 value={nameRack}
-                onChange={(e) => setNameRack(e.target.value)}
+                onChange={(e) =>
+                  setNameRack(e.target.value)
+                }
                 placeholder="e.g. Master Logistics Alpha"
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all italic shadow-inner"
               />
