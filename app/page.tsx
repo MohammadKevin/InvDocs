@@ -478,10 +478,9 @@ export default function LandingPage() {
               </h4>
               <ul className="space-y-4 font-bold text-slate-400">
                 {[
-                  "Company Profile",
-                  "Product Stack",
-                  "Security Protocol",
-                  "Contact Lab",
+                  "Home",
+                  "About",
+                  "Contact",
                 ].map((link) => (
                   <li
                     key={link}
