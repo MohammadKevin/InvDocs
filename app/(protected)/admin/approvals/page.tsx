@@ -5,71 +5,56 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import {
-  Check,
-  X,
-  Download,
-  Search,
-  Filter,
+  Upload,
   FileText,
   Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 
-interface DocumentItem {
+interface BoxItem {
   id: string;
-
-  title?: string;
-
-  file_name?: string;
-
-  fileUrl?: string;
-
-  file_url?: string;
-
-  user?: {
-    fullname?: string;
-    fullName?: string;
-  };
-
-  box?: {
-    name_box?: string;
-    name?: string;
-  };
-
-  createdAt?: string;
-
-  status?: string;
+  name?: string;
+  name_box?: string;
+  code_box?: string;
 }
 
-const FILE_BASE_URL =
-  "https://invdocs-api-production.up.railway.app";
+export default function UploadDocumentPage() {
+  const [title, setTitle] = useState("");
 
-export default function ApprovalsPage() {
-  const [documents, setDocuments] =
-    useState<DocumentItem[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [searchTerm, setSearchTerm] =
+  const [description, setDescription] =
     useState("");
 
-  const [actionLoading, setActionLoading] =
-    useState<string | null>(null);
+  const [selectedBoxId, setSelectedBoxId] =
+    useState("");
+
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [boxes, setBoxes] = useState<
+    BoxItem[]
+  >([]);
+
+  const [fetchLoading, setFetchLoading] =
+    useState(true);
 
   useEffect(() => {
-    fetchDocuments();
+    fetchBoxes();
   }, []);
 
-  const fetchDocuments = async () => {
+  const fetchBoxes = async () => {
     try {
-      setLoading(true);
+      setFetchLoading(true);
 
       const res = await api.get(
-        "/documents",
+        "/boxes",
       );
 
       const data = Array.isArray(
@@ -78,360 +63,299 @@ export default function ApprovalsPage() {
         ? res.data
         : res.data?.data || [];
 
-      setDocuments(data);
+      setBoxes(data);
     } catch (err: any) {
       console.error(err);
 
       toast.error(
         err?.response?.data
           ?.message ||
-          "Failed fetch documents",
+          "Failed fetch boxes",
+      );
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    try {
+      if (!title) {
+        toast.error(
+          "Title is required",
+        );
+
+        return;
+      }
+
+      if (!selectedBoxId) {
+        toast.error(
+          "Select storage box",
+        );
+
+        return;
+      }
+
+      if (!selectedFile) {
+        toast.error(
+          "Select file first",
+        );
+
+        return;
+      }
+
+      setLoading(true);
+
+      const formData = new FormData();
+
+      formData.append(
+        "file",
+        selectedFile,
+      );
+
+      formData.append(
+        "title",
+        title,
+      );
+
+      formData.append(
+        "description",
+        description,
+      );
+
+      formData.append(
+        "boxId",
+        selectedBoxId,
+      );
+
+      const response = await api.post(
+        "/documents/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        },
+      );
+
+      console.log(response.data);
+
+      toast.success(
+        "Document uploaded successfully",
+      );
+
+      setTitle("");
+
+      setDescription("");
+
+      setSelectedBoxId("");
+
+      setSelectedFile(null);
+    } catch (err: any) {
+      console.error(err);
+
+      toast.error(
+        err?.response?.data
+          ?.message ||
+          "Upload failed",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (
-    id: string,
-  ) => {
-    try {
-      setActionLoading(id);
-
-      await api.patch(
-        `/documents/${id}/approve`,
-      );
-
-      setDocuments((prev) =>
-        prev.map((doc) =>
-          doc.id === id
-            ? {
-                ...doc,
-                status: "approved",
-              }
-            : doc,
-        ),
-      );
-
-      toast.success(
-        "Document approved",
-      );
-    } catch (err: any) {
-      console.error(err);
-
-      toast.error(
-        err?.response?.data
-          ?.message ||
-          "Approve failed",
-      );
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleReject = async (
-    id: string,
-  ) => {
-    try {
-      setActionLoading(id);
-
-      await api.patch(
-        `/documents/${id}/reject`,
-      );
-
-      setDocuments((prev) =>
-        prev.map((doc) =>
-          doc.id === id
-            ? {
-                ...doc,
-                status: "rejected",
-              }
-            : doc,
-        ),
-      );
-
-      toast.success(
-        "Document rejected",
-      );
-    } catch (err: any) {
-      console.error(err);
-
-      toast.error(
-        err?.response?.data
-          ?.message ||
-          "Reject failed",
-      );
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const filteredDocuments =
-    documents.filter((doc) => {
-      const title = (
-        doc.title ||
-        doc.file_name ||
-        ""
-      ).toLowerCase();
-
-      const user = (
-        doc.user?.fullname ||
-        doc.user?.fullName ||
-        ""
-      ).toLowerCase();
-
-      const search =
-        searchTerm.toLowerCase();
-
-      return (
-        title.includes(search) ||
-        user.includes(search)
-      );
-    });
-
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+      <div className="max-w-3xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">
-            Document Approvals
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase italic">
+            Upload Document
           </h1>
 
-          <p className="text-slate-500 font-medium">
-            Review and verify incoming
-            documents for your rack.
+          <p className="text-slate-500 mt-2 font-medium">
+            Upload archive files securely to your storage rack.
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative group">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              size={18}
-            />
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 space-y-6"
+        >
+          <div className="space-y-2">
+            <label className="text-sm font-black uppercase tracking-wide text-slate-700">
+              Document Title
+            </label>
 
             <input
               type="text"
-              value={searchTerm}
+              value={title}
               onChange={(e) =>
-                setSearchTerm(
+                setTitle(
                   e.target.value,
                 )
               }
-              placeholder="Search documents..."
-              className="pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-[20px] text-sm font-bold shadow-sm focus:ring-4 focus:ring-blue-500/10 outline-none w-64 transition-all"
+              placeholder="Input document title"
+              className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 font-semibold"
             />
           </div>
 
-          <button className="p-3 bg-white border border-slate-200 rounded-[18px] text-slate-600 hover:bg-slate-50 transition-all">
-            <Filter size={20} />
+          <div className="space-y-2">
+            <label className="text-sm font-black uppercase tracking-wide text-slate-700">
+              Description
+            </label>
+
+            <textarea
+              value={description}
+              onChange={(e) =>
+                setDescription(
+                  e.target.value,
+                )
+              }
+              placeholder="Input document description"
+              rows={5}
+              className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 font-semibold resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-black uppercase tracking-wide text-slate-700">
+              Select Storage Box
+            </label>
+
+            {fetchLoading ? (
+              <div className="flex items-center gap-3 py-4 text-slate-500 font-bold">
+                <Loader2 className="animate-spin w-5 h-5" />
+                Loading boxes...
+              </div>
+            ) : (
+              <select
+                value={selectedBoxId}
+                onChange={(e) =>
+                  setSelectedBoxId(
+                    e.target.value,
+                  )
+                }
+                className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 font-semibold bg-white"
+              >
+                <option value="">
+                  Select box
+                </option>
+
+                {boxes.map((box) => (
+                  <option
+                    key={box.id}
+                    value={box.id}
+                  >
+                    {box.name_box ||
+                      box.name ||
+                      box.code_box}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-black uppercase tracking-wide text-slate-700">
+              Upload File
+            </label>
+
+            <label className="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-slate-300 rounded-[2rem] p-10 bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer">
+              <Upload className="w-12 h-12 text-slate-400" />
+
+              <div className="text-center">
+                <p className="font-black text-slate-700 text-lg">
+                  Click to upload file
+                </p>
+
+                <p className="text-slate-500 text-sm mt-1 font-medium">
+                  PDF, JPG, PNG up to 5MB
+                </p>
+              </div>
+
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={(e) =>
+                  setSelectedFile(
+                    e.target
+                      .files?.[0] || null,
+                  )
+                }
+              />
+            </label>
+
+            {selectedFile && (
+              <motion.div
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4"
+              >
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+
+                <div>
+                  <p className="font-black text-emerald-700">
+                    {selectedFile.name}
+                  </p>
+
+                  <p className="text-xs text-emerald-600 font-semibold">
+                    {(
+                      selectedFile.size /
+                      1024 /
+                      1024
+                    ).toFixed(2)}
+                    MB
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+
+            <div>
+              <h3 className="font-black text-amber-700">
+                Upload Information
+              </h3>
+
+              <p className="text-sm text-amber-600 mt-1 font-medium leading-relaxed">
+                Files are stored temporarily on Railway storage.
+                Avoid redeploying the backend frequently because uploaded files may be removed automatically.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-wide hover:bg-slate-800 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <FileText className="w-5 h-5" />
+                Upload Document
+              </>
+            )}
           </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-          </div>
-        ) : filteredDocuments.length ===
-          0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <FileText
-              size={50}
-              className="text-slate-200 mb-4"
-            />
-
-            <h3 className="text-lg font-black text-slate-700">
-              No Documents Found
-            </h3>
-
-            <p className="text-slate-400 text-sm mt-1">
-              There are currently no
-              uploaded documents.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto text-sm font-bold">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/50 text-slate-400 uppercase tracking-widest text-[10px] border-b border-slate-100 font-black">
-                <tr>
-                  <th className="px-8 py-6">
-                    Document Title
-                  </th>
-
-                  <th className="px-8 py-6">
-                    Uploader
-                  </th>
-
-                  <th className="px-8 py-6">
-                    Storage
-                  </th>
-
-                  <th className="px-8 py-6">
-                    Status
-                  </th>
-
-                  <th className="px-8 py-6 text-center">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100 italic">
-                {filteredDocuments.map(
-                  (doc) => {
-                    const rawFile =
-                      doc.fileUrl ||
-                      doc.file_url ||
-                      "";
-
-                    const normalizedFile =
-                      rawFile.startsWith(
-                        "/uploads",
-                      )
-                        ? rawFile
-                        : `/uploads/documents/${rawFile}`;
-
-                    const downloadUrl =
-                      rawFile
-                        ? `${FILE_BASE_URL}${normalizedFile}`
-                        : "#";
-
-                    return (
-                      <motion.tr
-                        key={doc.id}
-                        initial={{
-                          opacity: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                        }}
-                        className="hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-3">
-                            <FileText
-                              size={18}
-                              className="text-slate-300"
-                            />
-
-                            <span className="text-slate-800 not-italic">
-                              {doc.title ||
-                                doc.file_name ||
-                                "Untitled"}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5 text-slate-500 font-medium">
-                          {doc.user
-                            ?.fullname ||
-                            doc.user
-                              ?.fullName ||
-                            "Unknown User"}
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-[10px] uppercase font-black">
-                            {doc.box
-                              ?.name_box ||
-                              doc.box
-                                ?.name ||
-                              "No Box"}
-                          </span>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <div
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-wider ${
-                              doc.status ===
-                              "approved"
-                                ? "bg-emerald-50 text-emerald-600"
-                                : doc.status ===
-                                  "pending"
-                                ? "bg-amber-50 text-amber-600"
-                                : "bg-red-50 text-red-600"
-                            }`}
-                          >
-                            {doc.status ||
-                              "pending"}
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <div className="flex justify-center gap-2">
-                            <button
-                              disabled={
-                                actionLoading ===
-                                  doc.id ||
-                                doc.status ===
-                                  "approved"
-                              }
-                              onClick={() =>
-                                handleApprove(
-                                  doc.id,
-                                )
-                              }
-                              className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95 disabled:opacity-50"
-                            >
-                              {actionLoading ===
-                              doc.id ? (
-                                <Loader2
-                                  size={16}
-                                  className="animate-spin"
-                                />
-                              ) : (
-                                <Check
-                                  size={16}
-                                />
-                              )}
-                            </button>
-
-                            <button
-                              disabled={
-                                actionLoading ===
-                                  doc.id ||
-                                doc.status ===
-                                  "rejected"
-                              }
-                              onClick={() =>
-                                handleReject(
-                                  doc.id,
-                                )
-                              }
-                              className="p-2.5 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
-                            >
-                              <X size={16} />
-                            </button>
-
-                            <a
-                              href={
-                                downloadUrl
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`p-2.5 rounded-xl transition-all active:scale-95 ${
-                                downloadUrl ===
-                                "#"
-                                  ? "bg-slate-100 text-slate-300 pointer-events-none"
-                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              }`}
-                            >
-                              <Download
-                                size={16}
-                              />
-                            </a>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    );
-                  },
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </motion.div>
       </div>
     </div>
   );
