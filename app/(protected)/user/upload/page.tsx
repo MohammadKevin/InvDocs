@@ -2,16 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  UploadCloud,
-  CheckCircle2,
-  ShieldCheck,
-  Loader2,
-} from "lucide-react";
+import { UploadCloud, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
 
 import { api } from "@/lib/api";
 
 interface BoxType {
+  name_box: string | undefined;
   id: string;
   name?: string;
   code?: string;
@@ -86,11 +82,7 @@ export default function UploadPage() {
       console.error("UPLOAD ERROR:", error);
       console.log("ERROR RESPONSE:", error?.response?.data);
 
-      alert(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Upload gagal"
-      );
+      alert(error?.response?.data?.message || error?.message || "Upload gagal");
     } finally {
       setIsUploading(false);
     }
@@ -191,15 +183,11 @@ export default function UploadPage() {
                 {loadingBoxes ? "Loading boxes..." : "Choose Box"}
               </option>
 
-              {boxes.map((box, i) => {
-                const boxCode = `BOX-${String(i + 1).padStart(3, "0")}`;
-
-                return (
-                  <option key={box.id} value={box.id}>
-                    {boxCode}
-                  </option>
-                );
-              })}
+              {boxes.map((box) => (
+                <option key={box.id} value={box.id}>
+                  {box.name || box.name_box || box.code || "Unnamed Box"}
+                </option>
+              ))}
             </select>
           </div>
         </div>

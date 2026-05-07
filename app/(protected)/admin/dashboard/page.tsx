@@ -184,10 +184,6 @@ export default function AdminDashboard() {
         {/* List */}
         <div className="space-y-6">
           {(showAll ? documents : documents.slice(0, 5)).map((doc: any) => {
-            const uploaderCode = doc.uploadedBy
-              ? `BOX-${doc.uploadedBy.slice(0, 6).toUpperCase()}`
-              : "BOX-UNKNOWN";
-
             return (
               <div
                 key={doc.id}
@@ -208,7 +204,11 @@ export default function AdminDashboard() {
                   </p>
 
                   <p className="text-xs text-slate-400 mt-1">
-                    Uploaded by {uploaderCode} • In {doc.location ?? "-"}
+                    Uploaded in{" "}
+                    <span className="font-semibold text-slate-600">
+                      {doc?.box?.name || doc?.box?.name_box || "Unnamed Box"}
+                    </span>{" "}
+                    • {doc.location ?? "-"}
                   </p>
                 </div>
 
