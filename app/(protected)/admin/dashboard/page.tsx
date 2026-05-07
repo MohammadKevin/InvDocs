@@ -183,31 +183,36 @@ export default function AdminDashboard() {
 
         {/* List */}
         <div className="space-y-6">
-          {(showAll ? documents : documents.slice(0, 5)).map((doc: any) => (
-            <div
-              key={doc.id}
-              className="flex gap-4 items-start pb-6 border-b border-slate-50 last:border-0"
-            >
-              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                <FileText size={18} />
-              </div>
+          {(showAll ? documents : documents.slice(0, 5)).map((doc: any) => {
+            const uploaderCode = doc.uploadedBy
+              ? `BOX-${doc.uploadedBy.slice(0, 6).toUpperCase()}`
+              : "BOX-UNKNOWN";
 
-              <div>
-                <p className="text-sm font-bold text-slate-800 italic">
-                  &quot;{doc.name || "Untitled document"}&quot;
-                </p>
+            return (
+              <div
+                key={doc.id}
+                className="flex gap-4 items-start pb-6 border-b border-slate-50 last:border-0"
+              >
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                  <FileText size={18} />
+                </div>
 
-                <p className="text-xs text-slate-400 mt-1">
-                  Uploaded by {doc.uploadedBy ?? "Unknown"} • In{" "}
-                  {doc.location ?? "-"}
-                </p>
-              </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 italic">
+                    &quot;{doc.name || "Untitled document"}&quot;
+                  </p>
 
-              <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase">
-                {new Date(doc.createdAt).toLocaleString()}
+                  <p className="text-xs text-slate-400 mt-1">
+                    Uploaded by {uploaderCode} • In {doc.location ?? "-"}
+                  </p>
+                </div>
+
+                <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase">
+                  {new Date(doc.createdAt).toLocaleString()}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
