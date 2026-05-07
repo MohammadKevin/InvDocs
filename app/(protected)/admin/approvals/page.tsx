@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { motion } from "framer-motion";
 
@@ -23,11 +23,9 @@ interface DocumentItem {
 
   title?: string;
 
-  file_name?: string;
-
   fileUrl?: string;
 
-  file_url?: string;
+  status?: string;
 
   user?: {
     fullname?: string;
@@ -40,14 +38,37 @@ interface DocumentItem {
 
     name?: string;
   };
-
-  createdAt?: string;
-
-  status?: string;
 }
 
-const FILE_BASE_URL =
-  "https://invdocs-api-production.up.railway.app";
+const statusStyles: Record<
+  string,
+  string
+> = {
+  approved:
+    "bg-emerald-50 text-emerald-600",
+
+  pending:
+    "bg-amber-50 text-amber-600",
+
+  rejected:
+    "bg-red-50 text-red-600",
+};
+
+function getStatusClass(
+  status?: string,
+) {
+  return `
+    inline-flex items-center gap-1.5
+    px-3 py-1 rounded-full
+    text-[10px] uppercase
+    font-black tracking-wider
+    ${
+      statusStyles[
+        status || "rejected"
+      ]
+    }
+  `;
+}
 
 export default function ApprovalsPage() {
   const [documents, setDocuments] =
@@ -67,42 +88,46 @@ export default function ApprovalsPage() {
     fetchDocuments();
   }, []);
 
-  const fetchDocuments = async () => {
+  async function fetchDocuments() {
     try {
       setLoading(true);
 
-      const res = await api.get(
-        "/documents",
-      );
+      const response =
+        await api.get(
+          "/documents",
+        );
 
-      const data = Array.isArray(
-        res.data,
-      )
-        ? res.data
-        : res.data?.data || [];
+      const data =
+        Array.isArray(
+          response.data,
+        )
+          ? response.data
+          : response.data?.data ||
+            [];
 
       setDocuments(data);
-    } catch (err: any) {
-      console.error(err);
-
+    } catch (error: any) {
       toast.error(
-        err?.response?.data
+        error?.response?.data
           ?.message ||
-          "Failed fetch documents",
+          "Failed to fetch documents",
       );
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const handleApprove = async (
+  async function updateStatus(
     id: string,
-  ) => {
+    action:
+      | "approve"
+      | "reject",
+  ) {
     try {
       setActionLoading(id);
 
       await api.patch(
-        `/documents/${id}/approve`,
+        `/documents/${id}/${action}`,
       );
 
       setDocuments((prev) =>
@@ -110,107 +135,154 @@ export default function ApprovalsPage() {
           doc.id === id
             ? {
                 ...doc,
-                status: "approved",
+                status:
+                  action ===
+                  "approve"
+                    ? "approved"
+                    : "rejected",
               }
             : doc,
         ),
       );
 
       toast.success(
-        "Document approved",
+        `Document ${
+          action === "approve"
+            ? "approved"
+            : "rejected"
+        }`,
       );
-    } catch (err: any) {
-      console.error(err);
-
+    } catch (error: any) {
       toast.error(
-        err?.response?.data
+        error?.response?.data
           ?.message ||
-          "Approve failed",
+          `${action} failed`,
       );
     } finally {
       setActionLoading(null);
     }
-  };
+  }
 
-  const handleReject = async (
+  async function handleDownload(
     id: string,
-  ) => {
+    title?: string,
+  ) {
     try {
-      setActionLoading(id);
+      const token =
+        localStorage.getItem(
+          "token",
+        );
 
-      await api.patch(
-        `/documents/${id}/reject`,
+      const response =
+        await api.get(
+          `/documents/${id}/download`,
+          {
+            responseType:
+              "blob",
+
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+      const blob =
+        new Blob([
+          response.data,
+        ]);
+
+      const url =
+        window.URL.createObjectURL(
+          blob,
+        );
+
+      const link =
+        document.createElement(
+          "a",
+        );
+
+      link.href = url;
+
+      link.download =
+        title || "document";
+
+      document.body.appendChild(
+        link,
       );
 
-      setDocuments((prev) =>
-        prev.map((doc) =>
-          doc.id === id
-            ? {
-                ...doc,
-                status: "rejected",
-              }
-            : doc,
-        ),
-      );
+      link.click();
 
-      toast.success(
-        "Document rejected",
+      link.remove();
+
+      window.URL.revokeObjectURL(
+        url,
       );
-    } catch (err: any) {
-      console.error(err);
+    } catch (error: any) {
+      console.error(error);
 
       toast.error(
-        err?.response?.data
+        error?.response?.data
           ?.message ||
-          "Reject failed",
+          "Download failed",
       );
-    } finally {
-      setActionLoading(null);
     }
-  };
+  }
 
   const filteredDocuments =
-    documents.filter((doc) => {
-      const title = (
-        doc.title ||
-        doc.file_name ||
-        ""
-      ).toLowerCase();
+    useMemo(() => {
+      return documents.filter(
+        (doc) => {
+          const search =
+            searchTerm.toLowerCase();
 
-      const user = (
-        doc.user?.fullname ||
-        doc.user?.fullName ||
-        ""
-      ).toLowerCase();
+          const title = (
+            doc.title || ""
+          ).toLowerCase();
 
-      const search =
-        searchTerm.toLowerCase();
+          const uploader =
+            (
+              doc.user
+                ?.fullname ||
+              doc.user
+                ?.fullName ||
+              ""
+            ).toLowerCase();
 
-      return (
-        title.includes(search) ||
-        user.includes(search)
+          return (
+            title.includes(
+              search,
+            ) ||
+            uploader.includes(
+              search,
+            )
+          );
+        },
       );
-    });
+    }, [
+      documents,
+      searchTerm,
+    ]);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">
+          <h1 className="text-3xl font-black tracking-tighter uppercase italic text-slate-900">
             Document Approvals
           </h1>
 
           <p className="text-slate-500 font-medium">
-            Review and verify incoming
-            documents for your rack.
+            Review and verify
+            incoming documents
+            for your rack.
           </p>
         </div>
 
         <div className="flex gap-3">
-          <div className="relative group">
+          <div className="relative">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -222,7 +294,7 @@ export default function ApprovalsPage() {
                 )
               }
               placeholder="Search documents..."
-              className="pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-[20px] text-sm font-bold shadow-sm focus:ring-4 focus:ring-blue-500/10 outline-none w-64 transition-all"
+              className="w-64 pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-[20px] text-sm font-bold shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
             />
           </div>
 
@@ -232,7 +304,7 @@ export default function ApprovalsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+      <div className="overflow-hidden bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
@@ -241,23 +313,24 @@ export default function ApprovalsPage() {
           0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <FileText
+              className="mb-4 text-slate-200"
               size={50}
-              className="text-slate-200 mb-4"
             />
 
             <h3 className="text-lg font-black text-slate-700">
               No Documents Found
             </h3>
 
-            <p className="text-slate-400 text-sm mt-1">
-              There are currently no
-              uploaded documents.
+            <p className="mt-1 text-sm text-slate-400">
+              There are currently
+              no uploaded
+              documents.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto text-sm font-bold">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/50 text-slate-400 uppercase tracking-widest text-[10px] border-b border-slate-100 font-black">
+              <thead className="border-b border-slate-100 bg-slate-50/50 text-[10px] uppercase tracking-widest text-slate-400 font-black">
                 <tr>
                   <th className="px-8 py-6">
                     Document Title
@@ -284,25 +357,12 @@ export default function ApprovalsPage() {
               <tbody className="divide-y divide-slate-100 italic">
                 {filteredDocuments.map(
                   (doc) => {
-                    const rawFile =
-                      doc.fileUrl ||
-                      doc.file_url ||
-                      null;
+                    const isLoading =
+                      actionLoading ===
+                      doc.id;
 
-                    const normalizedFile =
-                      rawFile &&
-                      rawFile.startsWith(
-                        "/uploads",
-                      )
-                        ? rawFile
-                        : rawFile
-                        ? `/uploads/documents/${rawFile}`
-                        : null;
-
-                    const downloadUrl =
-                      normalizedFile
-                        ? `${FILE_BASE_URL}${normalizedFile}`
-                        : null;
+                    const hasFile =
+                      !!doc.fileUrl;
 
                     return (
                       <motion.tr
@@ -313,7 +373,7 @@ export default function ApprovalsPage() {
                         animate={{
                           opacity: 1,
                         }}
-                        className="hover:bg-slate-50/50 transition-colors"
+                        className="transition-colors hover:bg-slate-50/50"
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
@@ -322,15 +382,14 @@ export default function ApprovalsPage() {
                               className="text-slate-300"
                             />
 
-                            <span className="text-slate-800 not-italic">
+                            <span className="not-italic text-slate-800">
                               {doc.title ||
-                                doc.file_name ||
                                 "Untitled"}
                             </span>
                           </div>
                         </td>
 
-                        <td className="px-8 py-5 text-slate-500 font-medium">
+                        <td className="px-8 py-5 font-medium text-slate-500">
                           {doc.user
                             ?.fullname ||
                             doc.user
@@ -339,7 +398,7 @@ export default function ApprovalsPage() {
                         </td>
 
                         <td className="px-8 py-5">
-                          <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-[10px] uppercase font-black">
+                          <span className="px-2 py-1 text-[10px] uppercase rounded-md font-black bg-blue-50 text-blue-600">
                             {doc.box
                               ?.name_box ||
                               doc.box
@@ -350,15 +409,9 @@ export default function ApprovalsPage() {
 
                         <td className="px-8 py-5">
                           <div
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-wider ${
-                              doc.status ===
-                              "approved"
-                                ? "bg-emerald-50 text-emerald-600"
-                                : doc.status ===
-                                  "pending"
-                                ? "bg-amber-50 text-amber-600"
-                                : "bg-red-50 text-red-600"
-                            }`}
+                            className={getStatusClass(
+                              doc.status,
+                            )}
                           >
                             {doc.status ||
                               "pending"}
@@ -369,41 +422,38 @@ export default function ApprovalsPage() {
                           <div className="flex justify-center gap-2">
                             <button
                               disabled={
-                                actionLoading ===
-                                  doc.id ||
+                                isLoading ||
                                 doc.status ===
                                   "approved"
                               }
                               onClick={() =>
-                                handleApprove(
+                                updateStatus(
                                   doc.id,
+                                  "approve",
                                 )
                               }
-                              className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                              className="p-2.5 bg-slate-900 text-white rounded-xl shadow-md hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
                             >
-                              {actionLoading ===
-                              doc.id ? (
+                              {isLoading ? (
                                 <Loader2
                                   size={16}
                                   className="animate-spin"
                                 />
                               ) : (
-                                <Check
-                                  size={16}
-                                />
+                                <Check size={16} />
                               )}
                             </button>
 
                             <button
                               disabled={
-                                actionLoading ===
-                                  doc.id ||
+                                isLoading ||
                                 doc.status ===
                                   "rejected"
                               }
                               onClick={() =>
-                                handleReject(
+                                updateStatus(
                                   doc.id,
+                                  "reject",
                                 )
                               }
                               className="p-2.5 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
@@ -411,23 +461,26 @@ export default function ApprovalsPage() {
                               <X size={16} />
                             </button>
 
-                            <a
-                              href={
-                                downloadUrl ||
-                                undefined
+                            <button
+                              disabled={
+                                !hasFile
                               }
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              onClick={() =>
+                                handleDownload(
+                                  doc.id,
+                                  doc.title,
+                                )
+                              }
                               className={`p-2.5 rounded-xl transition-all active:scale-95 ${
-                                !downloadUrl
-                                  ? "bg-slate-100 text-slate-300 pointer-events-none"
-                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                hasFile
+                                  ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  : "bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed"
                               }`}
                             >
                               <Download
                                 size={16}
                               />
-                            </a>
+                            </button>
                           </div>
                         </td>
                       </motion.tr>
