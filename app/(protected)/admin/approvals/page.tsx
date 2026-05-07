@@ -46,7 +46,12 @@ export default function UploadDocumentPage() {
     useState(true);
 
   useEffect(() => {
+<<<<<<< HEAD
     fetchBoxes();
+=======
+    // eslint-disable-next-line react-hooks/immutability
+    fetchDocuments();
+>>>>>>> 344d4558d2c33b7766bcc125fa7933957ccb9793
   }, []);
 
   const fetchBoxes = async () => {
