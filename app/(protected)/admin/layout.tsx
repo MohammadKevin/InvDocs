@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -29,11 +29,23 @@ export default function AdminRackLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+
+  // ================= FIXED LOGOUT (SAMAKAN DENGAN SUPER ADMIN) =================
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setIsOpen(false);
+
+    // 🔥 balik ke landing page
+    router.replace("/");
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFBFC] flex">
-      {/* Sidebar Desktop */}
+      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 sticky top-0 h-screen">
         <div className="p-8">
           <div className="flex items-center gap-3">
@@ -46,6 +58,7 @@ export default function AdminRackLayout({
           </div>
         </div>
 
+        {/* MENU */}
         <nav className="flex-1 px-4 space-y-2">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -68,18 +81,19 @@ export default function AdminRackLayout({
           })}
         </nav>
 
+        {/* ================= SIGN OUT FIXED ================= */}
         <div className="p-4 border-t border-slate-100">
-          <Link
-            href="/login"
+          <button
+            onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
           >
             <LogOut size={20} />
             Sign Out
-          </Link>
+          </button>
         </div>
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* ================= MOBILE SIDEBAR ================= */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -100,9 +114,8 @@ export default function AdminRackLayout({
               transition={{ type: "tween" }}
               className="fixed top-0 left-0 w-64 h-full bg-white z-50 shadow-xl lg:hidden flex flex-col"
             >
-              {/* HEADER + LOGO (DISAMAKAN DENGAN YANG BAWAH) */}
+              {/* HEADER */}
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                {/* LOGO */}
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
                     I
@@ -112,7 +125,6 @@ export default function AdminRackLayout({
                   </span>
                 </div>
 
-                {/* CLOSE BUTTON */}
                 <button onClick={() => setIsOpen(false)}>
                   <X size={24} />
                 </button>
@@ -143,15 +155,25 @@ export default function AdminRackLayout({
                   );
                 })}
               </nav>
+
+              {/* ================= SIGN OUT MOBILE FIXED ================= */}
+              <div className="p-4 border-t border-slate-100 mt-auto">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  <LogOut size={20} />
+                  Sign Out
+                </button>
+              </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {/* ================= MAIN CONTENT ================= */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
-          {/* Hamburger */}
           <button
             onClick={() => setIsOpen(true)}
             className="lg:hidden p-2 text-slate-600"
@@ -162,7 +184,7 @@ export default function AdminRackLayout({
           <div className="flex-1" />
 
           <div className="flex items-center gap-5">
-            <button className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-full transition-colors relative">
+            <button className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-full relative">
               <Bell size={20} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-white" />
             </button>

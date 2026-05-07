@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -31,7 +31,19 @@ export default function SuperAdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // ================= LOGOUT FIXED =================
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setIsMobileOpen(false);
+
+    // 🔥 redirect ke landing page
+    router.replace("/");
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex">
@@ -72,15 +84,15 @@ export default function SuperAdminLayout({
           })}
         </nav>
 
-        {/* Logout */}
+        {/* ================= SIGN OUT ================= */}
         <div className="p-4 border-t border-slate-100">
-          <Link
-            href="/#"
+          <button
+            onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
           >
             <LogOut size={20} />
             Sign Out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -150,7 +162,7 @@ export default function SuperAdminLayout({
               transition={{ type: "tween" }}
               className="fixed inset-y-0 left-0 w-72 bg-white z-[50] flex flex-col lg:hidden"
             >
-              {/* Header Logo */}
+              {/* Header */}
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
@@ -167,7 +179,7 @@ export default function SuperAdminLayout({
               </div>
 
               {/* MENU */}
-              <nav className="flex flex-col gap-2 p-4">
+              <nav className="flex flex-col gap-2 p-4 flex-1">
                 {sidebarItems.map((item) => {
                   const isActive = pathname === item.href;
 
@@ -191,6 +203,17 @@ export default function SuperAdminLayout({
                   );
                 })}
               </nav>
+
+              {/* ================= SIGN OUT MOBILE ================= */}
+              <div className="p-4 border-t border-slate-100 mt-auto">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  <LogOut size={20} />
+                  Sign Out
+                </button>
+              </div>
             </motion.aside>
           </>
         )}
