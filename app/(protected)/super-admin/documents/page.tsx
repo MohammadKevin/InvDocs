@@ -94,9 +94,9 @@ export default function DocumentsPage() {
         prev.map((doc) =>
           doc.id === id
             ? {
-              ...doc,
-              status: action === "approve" ? "approved" : "rejected",
-            }
+                ...doc,
+                status: action === "approve" ? "approved" : "rejected",
+              }
             : doc
         )
       );
