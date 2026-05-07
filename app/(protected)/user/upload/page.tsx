@@ -2,36 +2,75 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
+
+import {
+  UploadCloud,
+  CheckCircle2,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 
 import { api } from "@/lib/api";
 
-interface BoxType {
-  name_box: string | undefined;
+interface RackType {
   id: string;
   name?: string;
   code?: string;
+  name_rack?: string;
+}
+
+interface BoxType {
+  id: string;
+  name?: string;
+  code?: string;
+  name_box?: string;
+  rackId?: string;
 }
 
 export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
-  const [loadingBoxes, setLoadingBoxes] = useState(true);
+
+  const [loadingRacks, setLoadingRacks] = useState(true);
+  const [loadingBoxes, setLoadingBoxes] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+
+  const [rackId, setRackId] = useState("");
   const [boxId, setBoxId] = useState("");
 
+  const [racks, setRacks] = useState<RackType[]>([]);
   const [boxes, setBoxes] = useState<BoxType[]>([]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
-    fetchBoxes();
+    fetchRacks();
   }, []);
 
-  const fetchBoxes = async () => {
+  const fetchRacks = async () => {
+    try {
+      setLoadingRacks(true);
+
+      const response = await api.get("/racks");
+
+      const data = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+
+      setRacks(data);
+    } catch (error) {
+      console.error("FETCH RACKS ERROR:", error);
+    } finally {
+      setLoadingRacks(false);
+    }
+  };
+
+  const fetchBoxes = async (selectedRackId: string) => {
     try {
       setLoadingBoxes(true);
 
@@ -43,7 +82,11 @@ export default function UploadPage() {
           ? response.data.data
           : [];
 
-      setBoxes(data);
+      const filteredBoxes = data.filter(
+        (box: BoxType) => box.rackId === selectedRackId
+      );
+
+      setBoxes(filteredBoxes);
     } catch (error) {
       console.error("FETCH BOXES ERROR:", error);
     } finally {
@@ -51,29 +94,47 @@ export default function UploadPage() {
     }
   };
 
+  const handleRackChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedRackId = e.target.value;
+
+    setRackId(selectedRackId);
+    setBoxId("");
+    setBoxes([]);
+
+    if (selectedRackId) {
+      await fetchBoxes(selectedRackId);
+    }
+  };
+
   const handleUpload = async () => {
     try {
       if (!file) return alert("Pilih file");
       if (!title) return alert("Title wajib diisi");
+      if (!rackId) return alert("Pilih rack");
       if (!boxId) return alert("Pilih box");
 
       setIsUploading(true);
 
       const formData = new FormData();
+
       formData.append("file", file);
       formData.append("title", title.trim());
       formData.append("description", description.trim());
+      formData.append("rackId", rackId);
       formData.append("boxId", boxId);
 
       await api.post("/documents/upload", formData);
 
       alert("Upload berhasil");
 
-      // ✅ RESET FORM
       setFile(null);
       setTitle("");
       setDescription("");
+      setRackId("");
       setBoxId("");
+      setBoxes([]);
 
       if (inputRef.current) {
         inputRef.current.value = "";
@@ -82,7 +143,7 @@ export default function UploadPage() {
       console.error("UPLOAD ERROR:", error);
       console.log("ERROR RESPONSE:", error?.response?.data);
 
-      alert(error?.response?.data?.message || error?.message || "Upload gagal");
+      alert(error?.response?.data?.message || "Upload gagal");
     } finally {
       setIsUploading(false);
     }
@@ -90,17 +151,16 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-10">
-      {/* HEADER */}
       <div className="text-center">
         <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
           Secure Ingestion
         </h2>
+
         <p className="text-slate-500 font-medium">
           Digitalize and archive your assets securely.
         </p>
       </div>
 
-      {/* UPLOAD AREA */}
       <motion.div
         whileHover={{ scale: 1.01 }}
         className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-16 text-center group hover:border-blue-500 transition-all cursor-pointer relative overflow-hidden"
@@ -150,9 +210,7 @@ export default function UploadPage() {
         </div>
       </motion.div>
 
-      {/* FORM */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* LEFT */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-6 flex items-center gap-2">
             <ShieldCheck size={14} className="text-blue-600" />
@@ -175,28 +233,55 @@ export default function UploadPage() {
             />
 
             <select
-              value={boxId}
-              onChange={(e) => setBoxId(e.target.value)}
+              value={rackId}
+              onChange={handleRackChange}
               className="w-full bg-slate-50 rounded-2xl py-4 px-5 text-sm font-medium outline-none"
             >
               <option value="">
-                {loadingBoxes ? "Loading boxes..." : "Choose Box"}
+                {loadingRacks ? "Loading racks..." : "Choose Rack"}
+              </option>
+
+              {racks.map((rack) => (
+                <option key={rack.id} value={rack.id}>
+                  {rack.name ||
+                    rack.name_rack ||
+                    rack.code ||
+                    "Unnamed Rack"}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={boxId}
+              onChange={(e) => setBoxId(e.target.value)}
+              disabled={!rackId}
+              className="w-full bg-slate-50 rounded-2xl py-4 px-5 text-sm font-medium outline-none disabled:opacity-50"
+            >
+              <option value="">
+                {loadingBoxes
+                  ? "Loading boxes..."
+                  : !rackId
+                    ? "Choose rack first"
+                    : "Choose Box"}
               </option>
 
               {boxes.map((box) => (
                 <option key={box.id} value={box.id}>
-                  {box.name || box.name_box || box.code || "Unnamed Box"}
+                  {box.name ||
+                    box.name_box ||
+                    box.code ||
+                    "Unnamed Box"}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="bg-emerald-950 p-8 rounded-[2.5rem] text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex gap-4 items-center mb-6">
               <CheckCircle2 size={24} className="text-emerald-400" />
+
               <h4 className="text-lg font-black">
                 Instant Verification Active
               </h4>
