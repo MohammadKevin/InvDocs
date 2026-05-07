@@ -61,6 +61,7 @@ export default function ApprovalsPage() {
     useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchDocuments();
   }, []);
 

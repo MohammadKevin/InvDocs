@@ -194,7 +194,7 @@ export default function AdminDashboard() {
 
               <div>
                 <p className="text-sm font-bold text-slate-800 italic">
-                  {doc.filename || doc.name || "Untitled document"}
+                  &quot;{doc.name || "Untitled document"}&quot;
                 </p>
 
                 <p className="text-xs text-slate-400 mt-1">
