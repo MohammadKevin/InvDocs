@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { motion } from "framer-motion";
 
 import {
@@ -59,9 +60,6 @@ export default function ApprovalsPage() {
   const [actionLoading, setActionLoading] =
     useState<string | null>(null);
 
-  // =========================
-  // FETCH DOCUMENTS
-  // =========================
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -71,61 +69,39 @@ export default function ApprovalsPage() {
       setLoading(true);
 
       const res = await api.get(
-        "/documents"
-      );
-
-      console.log(
-        "DOCUMENTS:",
-        res.data
+        "/documents",
       );
 
       const data = Array.isArray(
-        res.data
+        res.data,
       )
         ? res.data
         : res.data?.data || [];
 
       setDocuments(data);
     } catch (err: any) {
-      console.error(
-        "Failed fetch documents:",
-        err
-      );
+      console.error(err);
 
       toast.error(
-        err?.response?.data?.message ||
-          "Failed fetch documents"
+        err?.response?.data
+          ?.message ||
+          "Failed fetch documents",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // =========================
-  // APPROVE
-  // =========================
   const handleApprove = async (
-    id: string
+    id: string,
   ) => {
     try {
       setActionLoading(id);
 
-      console.log(
-        "APPROVE DOCUMENT:",
-        id
+      await api.patch(
+        `/documents/${id}/approve`,
       );
 
-      const response =
-        await api.patch(
-          `/documents/${id}/approve`
-        );
-
-      console.log(
-        "APPROVE RESPONSE:",
-        response.data
-      );
-
-      // realtime update
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === id
@@ -133,40 +109,34 @@ export default function ApprovalsPage() {
                 ...doc,
                 status: "approved",
               }
-            : doc
-        )
+            : doc,
+        ),
       );
 
       toast.success(
-        "Document approved"
+        "Document approved",
       );
     } catch (err: any) {
-      console.error(
-        "Approve failed:",
-        err
-      );
+      console.error(err);
 
       toast.error(
         err?.response?.data
           ?.message ||
-          "Approve failed"
+          "Approve failed",
       );
     } finally {
       setActionLoading(null);
     }
   };
 
-  // =========================
-  // REJECT
-  // =========================
   const handleReject = async (
-    id: string
+    id: string,
   ) => {
     try {
       setActionLoading(id);
 
       await api.patch(
-        `/documents/${id}/reject`
+        `/documents/${id}/reject`,
       );
 
       setDocuments((prev) =>
@@ -176,32 +146,26 @@ export default function ApprovalsPage() {
                 ...doc,
                 status: "rejected",
               }
-            : doc
-        )
+            : doc,
+        ),
       );
 
       toast.success(
-        "Document rejected"
+        "Document rejected",
       );
     } catch (err: any) {
-      console.error(
-        "Reject failed:",
-        err
-      );
+      console.error(err);
 
       toast.error(
         err?.response?.data
           ?.message ||
-          "Reject failed"
+          "Reject failed",
       );
     } finally {
       setActionLoading(null);
     }
   };
 
-  // =========================
-  // FILTER
-  // =========================
   const filteredDocuments =
     documents.filter((doc) => {
       const title = (
@@ -227,7 +191,6 @@ export default function ApprovalsPage() {
 
   return (
     <div className="space-y-8">
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">
@@ -241,7 +204,6 @@ export default function ApprovalsPage() {
         </div>
 
         <div className="flex gap-3">
-          {/* SEARCH */}
           <div className="relative group">
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -253,7 +215,7 @@ export default function ApprovalsPage() {
               value={searchTerm}
               onChange={(e) =>
                 setSearchTerm(
-                  e.target.value
+                  e.target.value,
                 )
               }
               placeholder="Search documents..."
@@ -261,14 +223,12 @@ export default function ApprovalsPage() {
             />
           </div>
 
-          {/* FILTER */}
           <button className="p-3 bg-white border border-slate-200 rounded-[18px] text-slate-600 hover:bg-slate-50 transition-all">
             <Filter size={20} />
           </button>
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -321,11 +281,21 @@ export default function ApprovalsPage() {
               <tbody className="divide-y divide-slate-100 italic">
                 {filteredDocuments.map(
                   (doc) => {
+                    const rawFile =
+                      doc.fileUrl ||
+                      doc.file_url ||
+                      "";
+
+                    const normalizedFile =
+                      rawFile.startsWith(
+                        "/uploads",
+                      )
+                        ? rawFile
+                        : `/uploads/documents/${rawFile}`;
+
                     const downloadUrl =
-                      doc.fileUrl
-                        ? `${FILE_BASE_URL}${doc.fileUrl}`
-                        : doc.file_url
-                        ? `${FILE_BASE_URL}${doc.file_url}`
+                      rawFile
+                        ? `${FILE_BASE_URL}${normalizedFile}`
                         : "#";
 
                     return (
@@ -339,7 +309,6 @@ export default function ApprovalsPage() {
                         }}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
-                        {/* TITLE */}
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
                             <FileText
@@ -355,7 +324,6 @@ export default function ApprovalsPage() {
                           </div>
                         </td>
 
-                        {/* USER */}
                         <td className="px-8 py-5 text-slate-500 font-medium">
                           {doc.user
                             ?.fullname ||
@@ -364,7 +332,6 @@ export default function ApprovalsPage() {
                             "Unknown User"}
                         </td>
 
-                        {/* BOX */}
                         <td className="px-8 py-5">
                           <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-[10px] uppercase font-black">
                             {doc.box
@@ -375,7 +342,6 @@ export default function ApprovalsPage() {
                           </span>
                         </td>
 
-                        {/* STATUS */}
                         <td className="px-8 py-5">
                           <div
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-wider ${
@@ -393,10 +359,8 @@ export default function ApprovalsPage() {
                           </div>
                         </td>
 
-                        {/* ACTION */}
                         <td className="px-8 py-5">
                           <div className="flex justify-center gap-2">
-                            {/* APPROVE */}
                             <button
                               disabled={
                                 actionLoading ===
@@ -406,7 +370,7 @@ export default function ApprovalsPage() {
                               }
                               onClick={() =>
                                 handleApprove(
-                                  doc.id
+                                  doc.id,
                                 )
                               }
                               className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95 disabled:opacity-50"
@@ -424,7 +388,6 @@ export default function ApprovalsPage() {
                               )}
                             </button>
 
-                            {/* REJECT */}
                             <button
                               disabled={
                                 actionLoading ===
@@ -434,7 +397,7 @@ export default function ApprovalsPage() {
                               }
                               onClick={() =>
                                 handleReject(
-                                  doc.id
+                                  doc.id,
                                 )
                               }
                               className="p-2.5 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
@@ -442,15 +405,18 @@ export default function ApprovalsPage() {
                               <X size={16} />
                             </button>
 
-                            {/* DOWNLOAD */}
                             <a
                               href={
                                 downloadUrl
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              download
-                              className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all active:scale-95"
+                              className={`p-2.5 rounded-xl transition-all active:scale-95 ${
+                                downloadUrl ===
+                                "#"
+                                  ? "bg-slate-100 text-slate-300 pointer-events-none"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
                             >
                               <Download
                                 size={16}
@@ -460,7 +426,7 @@ export default function ApprovalsPage() {
                         </td>
                       </motion.tr>
                     );
-                  }
+                  },
                 )}
               </tbody>
             </table>
