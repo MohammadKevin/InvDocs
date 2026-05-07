@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-
 import {
   UploadCloud,
   CheckCircle2,
@@ -22,20 +21,17 @@ export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
-
   const [loadingBoxes, setLoadingBoxes] = useState(true);
 
   const [file, setFile] = useState<File | null>(null);
-
   const [title, setTitle] = useState("");
-
   const [description, setDescription] = useState("");
-
   const [boxId, setBoxId] = useState("");
 
   const [boxes, setBoxes] = useState<BoxType[]>([]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchBoxes();
   }, []);
 
@@ -48,8 +44,8 @@ export default function UploadPage() {
       const data = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data?.data)
-        ? response.data.data
-        : [];
+          ? response.data.data
+          : [];
 
       setBoxes(data);
     } catch (error) {
@@ -60,83 +56,70 @@ export default function UploadPage() {
   };
 
   const handleUpload = async () => {
-  try {
-    if (!file) {
-      alert("Pilih file");
-      return;
+    try {
+      if (!file) return alert("Pilih file");
+      if (!title) return alert("Title wajib diisi");
+      if (!boxId) return alert("Pilih box");
+
+      setIsUploading(true);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("boxId", boxId);
+
+      await api.post("/documents/upload", formData);
+
+      alert("Upload berhasil");
+
+      // ✅ RESET FORM
+      setFile(null);
+      setTitle("");
+      setDescription("");
+      setBoxId("");
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    } catch (error: any) {
+      console.error("UPLOAD ERROR:", error);
+      console.log("ERROR RESPONSE:", error?.response?.data);
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Upload gagal"
+      );
+    } finally {
+      setIsUploading(false);
     }
-
-    if (!title) {
-      alert("Title wajib diisi");
-      return;
-    }
-
-    if (!boxId) {
-      alert("Pilih box");
-      return;
-    }
-
-    setIsUploading(true);
-
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("title", title.trim());
-    formData.append("description", description.trim());
-    formData.append("boxId", boxId);
-
-    console.log("FORM DATA:");
-    console.log({
-      title,
-      description,
-      boxId,
-      file,
-    });
-
-    const response = await api.post(
-      "/documents/upload",
-      formData
-    );
-
-    console.log("UPLOAD SUCCESS:", response.data);
-
-    alert("Upload berhasil");
-  } catch (error: any) {
-    console.error("UPLOAD ERROR FULL:", error);
-
-    console.log("ERROR RESPONSE:", error?.data);
-
-    alert(
-      error?.data?.message ||
-        error?.message ||
-        "Upload gagal"
-    );
-  } finally {
-    setIsUploading(false);
-  }
-};
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-10">
+      {/* HEADER */}
       <div className="text-center">
         <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
           Secure Ingestion
         </h2>
-
         <p className="text-slate-500 font-medium">
           Digitalize and archive your assets securely.
         </p>
       </div>
 
+      {/* UPLOAD AREA */}
       <motion.div
         whileHover={{ scale: 1.01 }}
-        onClick={() => inputRef.current?.click()}
         className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-16 text-center group hover:border-blue-500 transition-all cursor-pointer relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-blue-50/10 opacity-0 group-hover:opacity-100 transition-opacity" />
 
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-200 mb-8 group-hover:rotate-12 transition-transform">
+          <div
+            onClick={() => inputRef.current?.click()}
+            className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-200 mb-8 group-hover:rotate-12 transition-transform"
+          >
             <UploadCloud size={32} />
           </div>
 
@@ -156,6 +139,7 @@ export default function UploadPage() {
 
           <button
             type="button"
+            onClick={() => inputRef.current?.click()}
             className="mt-6 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl"
           >
             Browse Documents
@@ -174,96 +158,63 @@ export default function UploadPage() {
         </div>
       </motion.div>
 
+      {/* FORM */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* LEFT */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-6 flex items-center gap-2">
-            <ShieldCheck
-              size={14}
-              className="text-blue-600"
-            />
+            <ShieldCheck size={14} className="text-blue-600" />
             Upload Properties
           </h4>
 
           <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">
-                Document Title
-              </label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-slate-50 rounded-2xl py-4 px-5 text-sm font-medium outline-none"
+              placeholder="Document Title"
+            />
 
-              <input
-                type="text"
-                value={title}
-                onChange={(e) =>
-                  setTitle(e.target.value)
-                }
-                className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-medium outline-none"
-                placeholder="e.g. Finance_Q1_2026"
-              />
-            </div>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-slate-50 rounded-2xl py-4 px-5 text-sm font-medium outline-none"
+              placeholder="Description"
+            />
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">
-                Description
-              </label>
+            <select
+              value={boxId}
+              onChange={(e) => setBoxId(e.target.value)}
+              className="w-full bg-slate-50 rounded-2xl py-4 px-5 text-sm font-medium outline-none"
+            >
+              <option value="">
+                {loadingBoxes ? "Loading boxes..." : "Choose Box"}
+              </option>
 
-              <textarea
-                value={description}
-                onChange={(e) =>
-                  setDescription(e.target.value)
-                }
-                className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-medium outline-none"
-                placeholder="Document description..."
-              />
-            </div>
+              {boxes.map((box, i) => {
+                const boxCode = `BOX-${String(i + 1).padStart(3, "0")}`;
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">
-                Select Box
-              </label>
-
-              <select
-                value={boxId}
-                onChange={(e) =>
-                  setBoxId(e.target.value)
-                }
-                className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-medium outline-none"
-              >
-                <option value="">
-                  {loadingBoxes
-                    ? "Loading boxes..."
-                    : "Choose Box"}
-                </option>
-
-                {boxes.map((box) => (
-                  <option
-                    key={box.id}
-                    value={box.id}
-                  >
-                    {box.name ||
-                      box.code ||
-                      box.id}
+                return (
+                  <option key={box.id} value={box.id}>
+                    {boxCode}
                   </option>
-                ))}
-              </select>
-            </div>
+                );
+              })}
+            </select>
           </div>
         </div>
 
-        <div className="bg-emerald-950 p-8 rounded-[2.5rem] text-white relative overflow-hidden flex flex-col justify-between">
+        {/* RIGHT */}
+        <div className="bg-emerald-950 p-8 rounded-[2.5rem] text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex gap-4 items-center mb-6">
-              <CheckCircle2
-                size={24}
-                className="text-emerald-400"
-              />
-
-              <h4 className="text-lg font-black tracking-tight leading-tight">
-                Instant Verification <br />
-                Active
+              <CheckCircle2 size={24} className="text-emerald-400" />
+              <h4 className="text-lg font-black">
+                Instant Verification Active
               </h4>
             </div>
 
-            <p className="text-emerald-200/60 text-xs font-medium leading-relaxed">
+            <p className="text-emerald-200/60 text-xs">
               Files will be scanned and securely archived.
             </p>
           </div>
@@ -271,14 +222,11 @@ export default function UploadPage() {
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className="mt-8 py-4 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-emerald-950/40 hover:bg-emerald-400 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+            className="mt-8 py-4 bg-emerald-500 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {isUploading ? (
               <>
-                <Loader2
-                  size={18}
-                  className="animate-spin"
-                />
+                <Loader2 size={18} className="animate-spin" />
                 Uploading...
               </>
             ) : (
