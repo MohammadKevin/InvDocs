@@ -94,8 +94,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">M. Kevin</p>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Premium User</p>
+                <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">User</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">User PT. Gudang Baru Jaya</p>
               </div>
               <div className="w-10 h-10 bg-slate-200 rounded-2xl border border-slate-300 overflow-hidden shadow-sm">
                 <img src={`https://ui-avatars.com/api/?name=Mohammad+Kevin&background=2563eb&color=fff`} alt="User" />

@@ -193,7 +193,7 @@ export default function AdminRackLayout({
 
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-800">Choqie</p>
+                <p className="text-sm font-bold text-slate-800">User</p>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Admin Rack
                 </p>
