@@ -31,6 +31,9 @@ interface DashboardStat {
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
+  const [showAll, setShowAll] = useState(false);
+  const [documents, setDocuments] = useState<any[]>([]);
+
   const [stats, setStats] = useState<DashboardStat[]>([
     {
       label: "Total Boxes",
@@ -73,51 +76,38 @@ export default function AdminDashboard() {
         ]);
 
         const boxes = boxesRes.data || [];
-        const documents = documentsRes.data || [];
+        const docs = documentsRes.data || [];
 
-        // contoh filtering status document
-        const pendingDocs = documents.filter(
-          (doc: any) =>
-            doc.status?.toLowerCase() === "pending"
+        setDocuments(docs);
+
+        const pendingDocs = docs.filter(
+          (doc: any) => doc.status?.toLowerCase() === "pending",
         );
 
-        const approvedDocs = documents.filter(
-          (doc: any) =>
-            doc.status?.toLowerCase() === "approved"
+        const approvedDocs = docs.filter(
+          (doc: any) => doc.status?.toLowerCase() === "approved",
         );
 
         setStats((prev) =>
           prev.map((stat) => {
             if (stat.key === "boxes") {
-              return {
-                ...stat,
-                value: boxes.length.toString(),
-              };
+              return { ...stat, value: boxes.length.toString() };
             }
 
             if (stat.key === "documents") {
-              return {
-                ...stat,
-                value: documents.length.toString(),
-              };
+              return { ...stat, value: docs.length.toString() };
             }
 
             if (stat.key === "pending") {
-              return {
-                ...stat,
-                value: pendingDocs.length.toString(),
-              };
+              return { ...stat, value: pendingDocs.length.toString() };
             }
 
             if (stat.key === "approved") {
-              return {
-                ...stat,
-                value: approvedDocs.length.toString(),
-              };
+              return { ...stat, value: approvedDocs.length.toString() };
             }
 
             return stat;
-          })
+          }),
         );
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -131,6 +121,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-10">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">
           Dashboard
@@ -174,44 +165,49 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-1 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">
-              Recent Activities
-            </h3>
+      {/* Recent Activities */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">
+            Recent Activities
+          </h3>
 
-            <button className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:underline">
-              View All <ArrowRight size={14} />
-            </button>
-          </div>
+          <button
+            onClick={() => setShowAll((prev) => !prev)}
+            className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:underline"
+          >
+            {showAll ? "Show Less" : "View All"} <ArrowRight size={14} />
+          </button>
+        </div>
 
-          <div className="space-y-6">
-            {[1, 2, 3].map((_, i) => (
-              <div
-                key={i}
-                className="flex gap-4 items-start pb-6 border-b border-slate-50 last:border-0"
-              >
-                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                  <FileText size={18} />
-                </div>
-
-                <div>
-                  <p className="text-sm font-bold text-slate-800 italic">
-                    &quot;Invoice_March_2026.pdf&quot; was uploaded
-                  </p>
-
-                  <p className="text-xs text-slate-400 mt-1">
-                    Uploaded by User 02 • In Box-A1
-                  </p>
-                </div>
-
-                <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase">
-                  2m ago
-                </div>
+        {/* List */}
+        <div className="space-y-6">
+          {(showAll ? documents : documents.slice(0, 5)).map((doc: any) => (
+            <div
+              key={doc.id}
+              className="flex gap-4 items-start pb-6 border-b border-slate-50 last:border-0"
+            >
+              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                <FileText size={18} />
               </div>
-            ))}
-          </div>
+
+              <div>
+                <p className="text-sm font-bold text-slate-800 italic">
+                  {doc.filename || doc.name || "Untitled document"}
+                </p>
+
+                <p className="text-xs text-slate-400 mt-1">
+                  Uploaded by {doc.uploadedBy ?? "Unknown"} • In{" "}
+                  {doc.location ?? "-"}
+                </p>
+              </div>
+
+              <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase">
+                {new Date(doc.createdAt).toLocaleString()}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

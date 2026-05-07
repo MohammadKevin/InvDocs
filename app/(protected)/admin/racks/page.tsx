@@ -40,6 +40,7 @@ export default function RackProfilePage() {
         const parsedUser: User =
           JSON.parse(userData);
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRackName(
           parsedUser?.rack
             ?.name_rack ||
