@@ -1,260 +1,221 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
   X,
   Download,
   Search,
-  Filter,
-  FileText,
   Loader2,
+  FileText,
+  User,
+  Archive,
+  ExternalLink,
 } from "lucide-react";
-import { toast } from "sonner";
+
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 interface DocumentItem {
   id: string;
   title?: string;
   fileUrl?: string;
-  status?: string;
+  status?: "pending" | "approved" | "rejected";
   user?: {
     fullname?: string;
     fullName?: string;
   };
   box?: {
     name_box?: string;
-    name?: string;
   };
-}
-
-const statusStyles: Record<string, string> = {
-  approved: "bg-emerald-50 text-emerald-600",
-  pending: "bg-amber-50 text-amber-600",
-  rejected: "bg-red-50 text-red-600",
-};
-
-function getStatusClass(status?: string): string {
-  const color = statusStyles[status ?? "rejected"] ?? statusStyles.rejected;
-  return [
-    "inline-flex items-center gap-1.5 px-3 py-1",
-    "rounded-full text-[10px] uppercase font-black tracking-wider",
-    color,
-  ].join(" ");
-}
-
-function openFile(fileUrl: string): void {
-  window.open(fileUrl, "_blank", "noopener,noreferrer");
 }
 
 export default function ApprovalsPage() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDocuments();
+    fetchDocs();
   }, []);
 
-  async function fetchDocuments(): Promise<void> {
+  async function fetchDocs() {
     try {
       setLoading(true);
-      const response = await api.get("/documents");
-      const data: DocumentItem[] = Array.isArray(response.data)
-        ? response.data
-        : response.data?.data ?? [];
+      const res = await api.get("/documents");
+      const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
       setDocuments(data);
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "Failed to fetch documents";
-      toast.error(message);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal fetch documents");
     } finally {
       setLoading(false);
     }
   }
 
-  async function updateStatus(
-    id: string,
-    action: "approve" | "reject"
-  ): Promise<void> {
+  async function updateStatus(id: string, action: "approve" | "reject") {
     try {
       setActionLoading(id);
-      await api.patch(`/documents/${id}/${action}`);
+      const url = action === "approve" ? `/documents/${id}/approve` : `/documents/${id}/reject`;
+      await api.patch(url);
+
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === id
-            ? {
-                ...doc,
-                status: action === "approve" ? "approved" : "rejected",
-              }
+            ? { ...doc, status: action === "approve" ? "approved" : "rejected" }
             : doc
         )
       );
-      toast.success(
-        `Document ${action === "approve" ? "approved" : "rejected"}`
-      );
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : `${action} failed`;
-      toast.error(message);
+
+      toast.success(`Document ${action === "approve" ? "approved" : "rejected"}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Action gagal");
     } finally {
       setActionLoading(null);
     }
   }
 
-  const filteredDocuments = useMemo<DocumentItem[]>(() => {
-    const search = searchTerm.toLowerCase();
-    return documents.filter((doc) => {
-      const title = (doc.title ?? "").toLowerCase();
-      const uploader = (
-        doc.user?.fullname ?? doc.user?.fullName ?? ""
-      ).toLowerCase();
-      return title.includes(search) || uploader.includes(search);
+  const filtered = useMemo(() => {
+    const kw = search.toLowerCase();
+    return documents.filter((d) => {
+      const name = d.user?.fullname || d.user?.fullName || "";
+      return d.title?.toLowerCase().includes(kw) || name.toLowerCase().includes(kw);
     });
-  }, [documents, searchTerm]);
+  }, [documents, search]);
+
+  const statusStyles = {
+    approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    rejected: "bg-rose-50 text-rose-700 border-rose-200",
+    pending: "bg-amber-50 text-amber-700 border-amber-200",
+  };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-7xl mx-auto space-y-8 p-4 md:p-8">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border shadow-sm">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase italic text-slate-900">
-            Document Approvals
-          </h1>
-          <p className="text-slate-500 font-medium">
-            Review and verify incoming documents for your rack.
-          </p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Approvals</h1>
+          <p className="text-slate-500 text-sm">Manage and review document submissions.</p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search documents..."
-              className="w-64 pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-[20px] text-sm font-bold shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
-            />
-          </div>
-          <button className="p-3 bg-white border border-slate-200 rounded-[18px] text-slate-600 hover:bg-slate-50 transition-all">
-            <Filter size={20} />
-          </button>
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search title or user..."
+            className="pl-10 pr-4 py-2.5 border rounded-2xl text-sm w-full md:w-72 focus:ring-4 focus:ring-blue-50 outline-none transition-all"
+          />
         </div>
       </div>
 
-      <div className="overflow-hidden bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
+      {/* TABLE SECTION */}
+      <div className="bg-white rounded-[2rem] border shadow-sm overflow-hidden transition-all">
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <Loader2 className="animate-spin text-blue-500" size={40} />
+            <p className="text-slate-400 font-medium animate-pulse">Loading documents...</p>
           </div>
-        ) : filteredDocuments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <FileText className="mb-4 text-slate-200" size={50} />
-            <h3 className="text-lg font-black text-slate-700">
-              No Documents Found
-            </h3>
-            <p className="mt-1 text-sm text-slate-400">
-              There are currently no uploaded documents.
-            </p>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-32 space-y-3">
+            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+              <FileText className="text-slate-300" size={32} />
+            </div>
+            <p className="text-slate-500 font-medium italic">No documents found matching your criteria</p>
           </div>
         ) : (
-          <div className="overflow-x-auto text-sm font-bold">
-            <table className="w-full text-left">
-              <thead className="border-b border-slate-100 bg-slate-50/50 text-[10px] uppercase tracking-widest text-slate-400 font-black">
-                <tr>
-                  <th className="px-8 py-6">Document Title</th>
-                  <th className="px-8 py-6">Uploader</th>
-                  <th className="px-8 py-6">Storage</th>
-                  <th className="px-8 py-6">Status</th>
-                  <th className="px-8 py-6 text-center">Action</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 font-semibold border-b">
+                  <th className="p-5 text-left">Document Info</th>
+                  <th className="p-5 text-left">Uploader</th>
+                  <th className="p-5 text-left">Location</th>
+                  <th className="p-5 text-left">Status</th>
+                  <th className="p-5 text-center">Action</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 italic">
-                {filteredDocuments.map((doc) => {
-                  const isActioning = actionLoading === doc.id;
-                  const hasFile = Boolean(doc.fileUrl);
+              <tbody className="divide-y">
+                <AnimatePresence>
+                  {filtered.map((doc) => {
+                    const isProcessing = actionLoading === doc.id;
+                    const status = doc.status || "pending";
 
-                  return (
-                    <motion.tr
-                      key={doc.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="transition-colors hover:bg-slate-50/50"
-                    >
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-3">
-                          <FileText size={18} className="text-slate-300" />
-                          <span className="not-italic text-slate-800">
-                            {doc.title ?? "Untitled"}
+                    return (
+                      <motion.tr 
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        key={doc.id} 
+                        className="hover:bg-slate-50/50 transition-colors group"
+                      >
+                        <td className="p-5">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                              <FileText size={18} />
+                            </div>
+                            <span className="font-bold text-slate-800">{doc.title || "Untitled Document"}</span>
+                          </div>
+                        </td>
+
+                        <td className="p-5 text-slate-600">
+                          <div className="flex items-center gap-2">
+                            <User size={14} className="text-slate-400" />
+                            {doc.user?.fullname || doc.user?.fullName || "System"}
+                          </div>
+                        </td>
+
+                        <td className="p-5 text-slate-600">
+                          <div className="flex items-center gap-2">
+                            <Archive size={14} className="text-slate-400" />
+                            {doc.box?.name_box || "Unassigned"}
+                          </div>
+                        </td>
+
+                        <td className="p-5">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${statusStyles[status]}`}>
+                            {status}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-8 py-5 font-medium text-slate-500">
-                        {doc.user?.fullname ??
-                          doc.user?.fullName ??
-                          "Unknown User"}
-                      </td>
+                        <td className="p-5">
+                          <div className="flex justify-center items-center gap-2">
+                            {/* APPROVE */}
+                            <button
+                              disabled={isProcessing || status === "approved"}
+                              onClick={() => updateStatus(doc.id, "approve")}
+                              className="h-9 w-9 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-emerald-600 disabled:opacity-30 disabled:hover:bg-slate-900 transition-all shadow-sm"
+                              title="Approve"
+                            >
+                              {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                            </button>
 
-                      <td className="px-8 py-5">
-                        <span className="px-2 py-1 text-[10px] uppercase rounded-md font-black bg-blue-50 text-blue-600">
-                          {doc.box?.name_box ?? doc.box?.name ?? "No Box"}
-                        </span>
-                      </td>
+                            {/* REJECT */}
+                            <button
+                              disabled={isProcessing || status === "rejected"}
+                              onClick={() => updateStatus(doc.id, "reject")}
+                              className="h-9 w-9 flex items-center justify-center border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 rounded-xl disabled:opacity-30 transition-all shadow-sm"
+                              title="Reject"
+                            >
+                              <X size={16} />
+                            </button>
 
-                      <td className="px-8 py-5">
-                        <div className={getStatusClass(doc.status)}>
-                          {doc.status ?? "pending"}
-                        </div>
-                      </td>
-
-                      <td className="px-8 py-5">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            disabled={isActioning || doc.status === "approved"}
-                            onClick={() => updateStatus(doc.id, "approve")}
-                            className="p-2.5 bg-slate-900 text-white rounded-xl shadow-md hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
-                          >
-                            {isActioning ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Check size={16} />
-                            )}
-                          </button>
-
-                          <button
-                            disabled={isActioning || doc.status === "rejected"}
-                            onClick={() => updateStatus(doc.id, "reject")}
-                            className="p-2.5 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
-                          >
-                            <X size={16} />
-                          </button>
-
-                          <button
-                            disabled={!hasFile}
-                            onClick={() =>
-                              doc.fileUrl && openFile(doc.fileUrl)
-                            }
-                            className={[
-                              "p-2.5 rounded-xl transition-all active:scale-95",
-                              hasFile
-                                ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                : "bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed",
-                            ].join(" ")}
-                          >
-                            <Download size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
+                            {/* VIEW / DOWNLOAD */}
+                            <button
+                              onClick={() => doc.fileUrl && window.open(doc.fileUrl, "_blank")}
+                              className="h-9 w-9 flex items-center justify-center border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-200 rounded-xl transition-all shadow-sm"
+                              title="View Document"
+                            >
+                              <ExternalLink size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>

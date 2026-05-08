@@ -1,224 +1,619 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
 import {
+  Server,
   Archive,
   FileText,
-  Clock,
-  CheckCircle,
-  ArrowRight,
+  ChevronRight,
+  Home,
   Loader2,
+  Search,
+  Download,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  User,
+  HardDrive,
+  Building2,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
 
-const colorClasses = {
-  blue: "bg-blue-50 text-blue-600",
-  slate: "bg-slate-100 text-slate-700",
-  amber: "bg-amber-50 text-amber-600",
-  emerald: "bg-emerald-50 text-emerald-600",
-};
-
-interface DashboardStat {
-  label: string;
-  value: string;
-  icon: any;
-  color: keyof typeof colorClasses;
-  key: string;
+interface Division {
+  divisi: string;
 }
 
-export default function AdminDashboard() {
-  const [loading, setLoading] = useState(true);
+interface Rack {
+  id: string;
+  name_rack: string;
+  divisi: string;
+  status: "pending" | "active" | "inactive";
+  createdAt: string;
+}
 
-  const [showAll, setShowAll] = useState(false);
-  const [documents, setDocuments] = useState<any[]>([]);
+interface Box {
+  id: string;
+  kode_box: string;
+  name_box: string;
+  description?: string;
+  rackId?: string;
+  createdAt: string;
+}
 
-  const [stats, setStats] = useState<DashboardStat[]>([
-    {
-      label: "Total Boxes",
-      value: "0",
-      icon: Archive,
-      color: "blue",
-      key: "boxes",
+interface DocumentItem {
+  id: string;
+  title: string;
+  description?: string;
+  status: "pending" | "approved" | "rejected";
+  fileUrl?: string;
+  boxId?: string;
+
+  user?: {
+    name?: string;
+  };
+
+  createdAt: string;
+}
+
+type View = "divisions" | "racks" | "boxes" | "files";
+
+const statusConfig = {
+  approved: {
+    class: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    icon: CheckCircle2,
+    label: "Approved",
+  },
+
+  pending: {
+    class: "bg-amber-50 text-amber-600 border-amber-100",
+    icon: Clock,
+    label: "Pending",
+  },
+
+  rejected: {
+    class: "bg-red-50 text-red-600 border-red-100",
+    icon: XCircle,
+    label: "Rejected",
+  },
+};
+
+function openFile(url: string) {
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+const gridVariants = {
+  hidden: {},
+
+  show: {
+    transition: {
+      staggerChildren: 0.05,
     },
-    {
-      label: "Total Documents",
-      value: "0",
-      icon: FileText,
-      color: "slate",
-      key: "documents",
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 18,
+    scale: 0.96,
+  },
+
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+
+    transition: {
+      duration: 0.28,
+      ease: "easeOut",
     },
-    {
-      label: "Pending",
-      value: "0",
-      icon: Clock,
-      color: "amber",
-      key: "pending",
+  },
+
+  exit: {
+    opacity: 0,
+    y: -10,
+    scale: 0.95,
+
+    transition: {
+      duration: 0.18,
     },
-    {
-      label: "Approved",
-      value: "0",
-      icon: CheckCircle,
-      color: "emerald",
-      key: "approved",
-    },
-  ]);
+  },
+};
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-
-        const [boxesRes, documentsRes] = await Promise.all([
-          api.get("/boxes"),
-          api.get("/documents"),
-        ]);
-
-        const boxes = boxesRes.data || [];
-        const docs = documentsRes.data || [];
-
-        setDocuments(docs);
-
-        const pendingDocs = docs.filter(
-          (doc: any) => doc.status?.toLowerCase() === "pending",
-        );
-
-        const approvedDocs = docs.filter(
-          (doc: any) => doc.status?.toLowerCase() === "approved",
-        );
-
-        setStats((prev) =>
-          prev.map((stat) => {
-            if (stat.key === "boxes") {
-              return { ...stat, value: boxes.length.toString() };
-            }
-
-            if (stat.key === "documents") {
-              return { ...stat, value: docs.length.toString() };
-            }
-
-            if (stat.key === "pending") {
-              return { ...stat, value: pendingDocs.length.toString() };
-            }
-
-            if (stat.key === "approved") {
-              return { ...stat, value: approvedDocs.length.toString() };
-            }
-
-            return stat;
-          }),
-        );
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
+function Breadcrumb({
+  view,
+  division,
+  rack,
+  box,
+  onHome,
+  onDivision,
+  onRack,
+}: {
+  view: View;
+  division: string | null;
+  rack: Rack | null;
+  box: Box | null;
+  onHome: () => void;
+  onDivision: () => void;
+  onRack: () => void;
+}) {
   return (
-    <div className="space-y-10">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">
-          Dashboard
-        </h1>
+    <nav className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+      <button
+        onClick={onHome}
+        className="flex items-center gap-1 hover:text-slate-700 transition-colors"
+      >
+        <Home size={13} />
+        <span>Divisions</span>
+      </button>
 
-        <p className="text-slate-500 font-medium mt-1">
-          Overview of your assigned rack performance.
-        </p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:shadow-md transition-all"
-          >
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
-                colorClasses[stat.color]
-              }`}
-            >
-              <stat.icon size={24} />
-            </div>
-
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-              {stat.label}
-            </p>
-
-            {loading ? (
-              <Loader2 className="w-6 h-6 animate-spin text-slate-300 mt-2" />
-            ) : (
-              <h3 className="text-3xl font-black text-slate-900 mt-1">
-                {stat.value}
-              </h3>
-            )}
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Recent Activities */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">
-            Recent Activities
-          </h3>
+      {view !== "divisions" && division && (
+        <>
+          <ChevronRight size={12} className="text-slate-300" />
 
           <button
-            onClick={() => setShowAll((prev) => !prev)}
-            className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:underline"
+            onClick={onDivision}
+            className="hover:text-slate-700 transition-colors"
           >
-            {showAll ? "Show Less" : "View All"} <ArrowRight size={14} />
+            {division}
           </button>
+        </>
+      )}
+
+      {(view === "boxes" || view === "files") && rack && (
+        <>
+          <ChevronRight size={12} className="text-slate-300" />
+
+          <button
+            onClick={onRack}
+            className="hover:text-slate-700 transition-colors"
+          >
+            {rack.name_rack}
+          </button>
+        </>
+      )}
+
+      {view === "files" && box && (
+        <>
+          <ChevronRight size={12} className="text-slate-300" />
+
+          <span className="text-slate-700">
+            {box.name_box}
+          </span>
+        </>
+      )}
+    </nav>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="col-span-full flex flex-col items-center justify-center py-28 text-center">
+      <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mb-4">
+        <HardDrive size={28} className="text-slate-300" />
+      </div>
+
+      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  const [view, setView] = useState<View>("divisions");
+
+  const [divisions, setDivisions] = useState<string[]>([]);
+  const [racks, setRacks] = useState<Rack[]>([]);
+  const [boxes, setBoxes] = useState<Box[]>([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+
+  const [activeDivision, setActiveDivision] =
+    useState<string | null>(null);
+
+  const [activeRack, setActiveRack] =
+    useState<Rack | null>(null);
+
+  const [activeBox, setActiveBox] =
+    useState<Box | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [clickTimer, setClickTimer] =
+    useState<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fetchDivisions();
+  }, []);
+
+  async function fetchDivisions() {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/rack/divisi");
+
+      const data: Division[] = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data ?? [];
+
+      setDivisions(data.map((item) => item.divisi));
+    } catch (error: any) {
+      console.error("FETCH DIVISION ERROR");
+      console.error(error);
+
+      setDivisions([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function openDivision(divisi: string) {
+    try {
+      setLoading(true);
+
+      setActiveDivision(divisi);
+      setView("racks");
+
+      const res = await api.get(`/rack/divisi/${divisi}`);
+
+      const data: Rack[] = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data ?? [];
+
+      setRacks(data);
+    } catch (error: any) {
+      console.error("FETCH RACK ERROR");
+      console.error(error);
+
+      setRacks([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleRackClick(rack: Rack) {
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      setClickTimer(null);
+
+      openRack(rack);
+    } else {
+      const timer = setTimeout(() => {
+        setClickTimer(null);
+      }, 300);
+
+      setClickTimer(timer);
+    }
+  }
+
+  function handleBoxClick(box: Box) {
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      setClickTimer(null);
+
+      openBox(box);
+    } else {
+      const timer = setTimeout(() => {
+        setClickTimer(null);
+      }, 300);
+
+      setClickTimer(timer);
+    }
+  }
+
+  async function openRack(rack: Rack) {
+    try {
+      setLoading(true);
+
+      setActiveRack(rack);
+      setActiveBox(null);
+
+      setView("boxes");
+
+      const res = await api.get("/boxes");
+
+      const data: Box[] = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data ?? [];
+
+      const rackBoxes = data.filter(
+        (box) => box.rackId === rack.id
+      );
+
+      setBoxes(rackBoxes);
+    } catch (error: any) {
+      console.error("FETCH BOX ERROR");
+      console.error(error);
+
+      setBoxes([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function openBox(box: Box) {
+    try {
+      setLoading(true);
+
+      setActiveBox(box);
+
+      setView("files");
+
+      const res = await api.get("/documents");
+
+      const data: DocumentItem[] = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data ?? [];
+
+      const boxDocuments = data.filter(
+        (doc) => doc.boxId === box.id
+      );
+
+      setDocuments(boxDocuments);
+    } catch (error: any) {
+      console.error("FETCH DOCUMENT ERROR");
+      console.error(error);
+
+      setDocuments([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function goHome() {
+    setView("divisions");
+
+    setActiveDivision(null);
+    setActiveRack(null);
+    setActiveBox(null);
+
+    setSearchTerm("");
+
+    fetchDivisions();
+  }
+
+  function goDivision() {
+    if (activeDivision) {
+      openDivision(activeDivision);
+    }
+  }
+
+  function goRack() {
+    if (activeRack) {
+      openRack(activeRack);
+    }
+  }
+
+  const kw = searchTerm.toLowerCase();
+
+  const filteredDivisions = divisions.filter((divisi) =>
+    divisi.toLowerCase().includes(kw)
+  );
+
+  const filteredRacks = racks.filter((rack) =>
+    rack.name_rack.toLowerCase().includes(kw)
+  );
+
+  const filteredBoxes = boxes.filter(
+    (box) =>
+      box.name_box.toLowerCase().includes(kw) ||
+      box.kode_box.toLowerCase().includes(kw)
+  );
+
+  const filteredDocs = documents.filter((doc) => {
+    const uploader = (
+      doc.user?.name ?? ""
+    ).toLowerCase();
+
+    return (
+      doc.title.toLowerCase().includes(kw) ||
+      uploader.includes(kw)
+    );
+  });
+
+  const viewLabel =
+    view === "divisions"
+      ? "All Divisions"
+      : view === "racks"
+      ? `Racks in ${activeDivision}`
+      : view === "boxes"
+      ? `Boxes in ${activeRack?.name_rack}`
+      : `Files in ${activeBox?.name_box}`;
+
+  const viewCount =
+    view === "divisions"
+      ? filteredDivisions.length
+      : view === "racks"
+      ? filteredRacks.length
+      : view === "boxes"
+      ? filteredBoxes.length
+      : filteredDocs.length;
+
+  return (
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-screen-xl mx-auto px-6 py-8 space-y-6">
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic flex items-center gap-3">
+              <img
+                src="/icon.png"
+                alt="Logo"
+                className="w-10 h-10 object-cover rounded-xl shadow-lg"
+              />
+              PT. Gudang Baru
+            </h1>
+
+            <Breadcrumb
+              view={view}
+              division={activeDivision}
+              rack={activeRack}
+              box={activeBox}
+              onHome={goHome}
+              onDivision={goDivision}
+              onRack={goRack}
+            />
+          </div>
+
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2.5 text-sm font-semibold bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 w-64 transition-all"
+            />
+          </div>
         </div>
 
-        {/* List */}
-        <div className="space-y-6">
-          {(showAll ? documents : documents.slice(0, 5)).map((doc: any) => {
-            return (
-              <div
-                key={doc.id}
-                className="flex gap-4 items-start pb-6 border-b border-slate-50 last:border-0"
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+            {viewLabel}
+
+            <span className="ml-2 bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+              {viewCount}
+            </span>
+          </p>
+
+          <p className="text-[10px] text-slate-400 italic">
+            Double-click to open
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-4">
+            <Loader2 className="w-9 h-9 text-blue-600 animate-spin" />
+
+            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-slate-400 animate-pulse">
+              Loading...
+            </p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+
+            {view === "divisions" && (
+              <motion.div
+                key="divisions"
+                variants={gridVariants}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
               >
-                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                  <FileText size={18} />
-                </div>
+                {filteredDivisions.length === 0 ? (
+                  <EmptyState label="No divisions found" />
+                ) : (
+                  filteredDivisions.map((divisi) => (
+                    <motion.button
+                      key={divisi}
+                      variants={cardVariants}
+                      onClick={() => openDivision(divisi)}
+                      className="group flex flex-col items-center gap-3 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center text-violet-500 group-hover:bg-violet-100 transition-colors">
+                        <Building2 size={28} />
+                      </div>
 
-                <div>
-                  <p className="text-sm font-bold text-slate-800 italic">
-                    &quot;
-                    {doc.title ||
-                      doc.file_name ||
-                      doc.name ||
-                      "Untitled document"}
-                    &quot;
-                  </p>
+                      <div className="w-full text-center">
+                        <p className="text-sm font-black text-slate-800 truncate">
+                          {divisi}
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))
+                )}
+              </motion.div>
+            )}
 
-                  <p className="text-xs text-slate-400 mt-1">
-                    Uploaded in{" "}
-                    <span className="font-semibold text-slate-600">
-                      {doc?.box?.name || doc?.box?.name_box || "Unnamed Box"}
-                    </span>{" "}
-                    • {doc.location ?? "-"}
-                  </p>
-                </div>
+            {view === "racks" && (
+              <motion.div
+                key="racks"
+                variants={gridVariants}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+              >
+                {filteredRacks.length === 0 ? (
+                  <EmptyState label="No racks found" />
+                ) : (
+                  filteredRacks.map((rack) => (
+                    <motion.button
+                      key={rack.id}
+                      variants={cardVariants}
+                      onClick={() => handleRackClick(rack)}
+                      className="group flex flex-col items-center gap-3 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 group-hover:bg-blue-100 transition-colors">
+                        <Server size={28} />
+                      </div>
 
-                <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase">
-                  {new Date(doc.createdAt).toLocaleString()}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                      <div className="w-full text-center">
+                        <p className="text-sm font-black text-slate-800 truncate">
+                          {rack.name_rack}
+                        </p>
+
+                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                          {rack.status}
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))
+                )}
+              </motion.div>
+            )}
+
+            {view === "boxes" && (
+              <motion.div
+                key="boxes"
+                variants={gridVariants}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+              >
+                {filteredBoxes.length === 0 ? (
+                  <EmptyState label="No boxes found" />
+                ) : (
+                  filteredBoxes.map((box) => (
+                    <motion.button
+                      key={box.id}
+                      variants={cardVariants}
+                      onClick={() => handleBoxClick(box)}
+                      className="group flex flex-col items-center gap-3 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 group-hover:bg-amber-100 transition-colors">
+                        <Archive size={28} />
+                      </div>
+
+                      <div className="w-full text-center">
+                        <p className="text-sm font-black text-slate-800 truncate">
+                          {box.name_box}
+                        </p>
+
+                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                          {box.kode_box}
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))
+                )}
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );

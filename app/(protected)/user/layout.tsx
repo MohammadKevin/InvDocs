@@ -12,7 +12,6 @@ const sidebarItems = [
   { name: 'Dashboard', icon: LayoutDashboard, href: '/user/dashboard' },
   { name: 'Explorer', icon: FileText, href: '/user/explorer' },
   { name: 'Upload', icon: UploadCloud, href: '/user/upload' },
-  { name: 'Profile', icon: User, href: '/user/profile' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

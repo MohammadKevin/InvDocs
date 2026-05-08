@@ -15,12 +15,12 @@ import {
   Bell,
   Search,
 } from "lucide-react";
+import Image from "next/image";
 
 const sidebarItems = [
   { name: "Dashboard", href: "/super-admin/dashboard", icon: LayoutDashboard },
   { name: "Users", href: "/super-admin/users", icon: Users },
   { name: "Racks", href: "/super-admin/racks", icon: Layers },
-  { name: "Boxes", href: "/super-admin/boxes", icon: Archive },
 ];
 
 export default function SuperAdminLayout({
@@ -49,11 +49,15 @@ export default function SuperAdminLayout({
         {/* Logo */}
         <div className="p-6">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
-              I
-            </div>
-            <span className="font-bold text-xl tracking-tight text-slate-800">
-              InvDocs
+            <Image
+              src="/icon.png"
+              alt="InvDocs Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-blue-200"
+            />
+            <span className="font-bold text-[15px] tracking-tight text-slate-800">
+              PT. Gudang Baru Berkah
             </span>
           </div>
         </div>
@@ -67,11 +71,10 @@ export default function SuperAdminLayout({
               <Link key={item.name} href={item.href}>
                 <motion.div
                   whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
                       ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
+                    }`}
                 >
                   <item.icon size={20} />
                   {item.name}
@@ -187,11 +190,10 @@ export default function SuperAdminLayout({
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <div
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
-                          isActive
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${isActive
                             ? "bg-blue-50 text-blue-600"
                             : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                          }`}
                       >
                         <item.icon size={20} />
                         {item.name}

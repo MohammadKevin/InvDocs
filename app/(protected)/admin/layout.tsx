@@ -18,7 +18,6 @@ import {
 
 const menuItems = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "My Rack", href: "/admin/racks", icon: Layers },
   { name: "Boxes", href: "/admin/boxes", icon: Archive },
   { name: "Approvals", href: "/admin/approvals", icon: ClipboardCheck },
 ];
