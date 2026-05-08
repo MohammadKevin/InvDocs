@@ -372,7 +372,7 @@ export default function DashboardPage() {
           <div className="space-y-1.5">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic flex items-center gap-2">
               <HardDrive size={24} className="text-blue-600" />
-              PT. Gudang Baru Berkah
+              PT. Gudang Baru
             </h1>
 
             <Breadcrumb
