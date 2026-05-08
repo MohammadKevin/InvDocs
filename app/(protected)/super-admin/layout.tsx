@@ -9,7 +9,6 @@ import {
   Users,
   Layers,
   Archive,
-  FileText,
   LogOut,
   Menu,
   X,
@@ -22,7 +21,6 @@ const sidebarItems = [
   { name: "Users", href: "/super-admin/users", icon: Users },
   { name: "Racks", href: "/super-admin/racks", icon: Layers },
   { name: "Boxes", href: "/super-admin/boxes", icon: Archive },
-  { name: "Documents", href: "/super-admin/documents", icon: FileText },
 ];
 
 export default function SuperAdminLayout({
@@ -47,7 +45,6 @@ export default function SuperAdminLayout({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex">
-      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 sticky top-0 h-screen">
         {/* Logo */}
         <div className="p-6">
