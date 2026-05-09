@@ -15,11 +15,9 @@ import {
   Download,
   Search,
   ChevronRight,
-  Moon,
-  Sun,
 } from "lucide-react";
+
 import { api } from "@/lib/api";
-import { useTheme } from "next-themes";
 
 type View = "divisions" | "racks" | "boxes" | "files";
 
@@ -82,18 +80,21 @@ const VIEW_META = {
     iconBg: "bg-violet-500/10",
     grad: "from-violet-500 to-indigo-500",
   },
+
   racks: {
     icon: Server,
     accent: "text-cyan-500",
     iconBg: "bg-cyan-500/10",
     grad: "from-cyan-500 to-teal-500",
   },
+
   boxes: {
     icon: Archive,
     accent: "text-amber-500",
     iconBg: "bg-amber-500/10",
     grad: "from-amber-500 to-orange-500",
   },
+
   files: {
     icon: FileText,
     accent: "text-emerald-500",
@@ -192,7 +193,8 @@ function FileCard({
             onClick={onPreview}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors"
           >
-            <Eye size={14} /> Preview
+            <Eye size={14} />
+            Preview
           </button>
 
           <button
@@ -221,8 +223,6 @@ export default function DashboardPage() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [documents, setDocuments] = useState<FileDoc[]>([]);
   const [previewFile, setPreviewFile] = useState<FileDoc | null>(null);
-
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     fetchInitial();
@@ -310,7 +310,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-
         {/* HEADER */}
         <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
@@ -352,20 +351,6 @@ export default function DashboardPage() {
                 className="pl-10 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all"
               />
             </div>
-
-            {/* THEME */}
-            <button
-              onClick={() =>
-                setTheme(theme === "dark" ? "light" : "dark")
-              }
-              className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 transition-all"
-            >
-              {theme === "dark" ? (
-                <Sun size={18} />
-              ) : (
-                <Moon size={18} />
-              )}
-            </button>
 
             {/* BACK */}
             {view !== "divisions" && (
