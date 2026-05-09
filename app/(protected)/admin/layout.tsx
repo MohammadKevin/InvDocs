@@ -83,14 +83,10 @@ export default function AdminRackLayout({ children }: { children: React.ReactNod
           <button onClick={() => setIsOpen(true)} className="lg:hidden p-2.5 bg-slate-50 rounded-xl text-slate-600"><Menu size={22} /></button>
           <div className="flex-1" />
           <div className="flex items-center gap-6">
-            <button className="relative p-2.5 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-cyan-500 rounded-full border-2 border-white ring-4 ring-cyan-500/10" />
-            </button>
             <div className="flex items-center gap-4 pl-6 border-l border-slate-200/60">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-800 leading-none mb-1">M. Kevin</p>
-                <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">Master Admin</p>
+                <p className="text-sm font-black text-slate-800 leading-none mb-1">Admin Rack</p>
+                <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">PT. Gudang Baru Berkah</p>
               </div>
               <div className="w-11 h-11 rounded-2xl border-2 border-cyan-500/20 p-0.5 shadow-sm">
                 <img src={`https://ui-avatars.com/api/?name=Mohammad+Kevin&background=06b6d4&color=fff`} className="w-full h-full rounded-[14px] object-cover" alt="User" />

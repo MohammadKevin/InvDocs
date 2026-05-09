@@ -11,7 +11,7 @@ export default function BoxesPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [rackId, setRackId] = useState<string>("");
-    const [formData, setFormData] = useState({ name_box: "", description: "", rackId: "" });
+    const [formData, setFormData] = useState({ name_box: "", description: "", rackId: "" as string });
 
     useEffect(() => { fetchData(); }, []);
 
@@ -21,8 +21,9 @@ export default function BoxesPage() {
             const rackRes = await api.get("/rack/my");
             const racks = rackRes.data?.data || rackRes.data || [];
             if (racks.length > 0) {
-                setRackId(racks[0].id);
-                setFormData(p => ({ ...p, rackId: racks[0].id }));
+                const firstId = racks[0].id ?? "";
+                setRackId(firstId);
+                setFormData(p => ({ ...p, rackId: firstId }));
             }
             const boxRes = await api.get("/boxes");
             const allBoxes = boxRes.data?.data || boxRes.data || [];
@@ -36,10 +37,16 @@ export default function BoxesPage() {
         try {
             await api.post("/boxes", formData);
             setIsModalOpen(false);
-            setFormData({ name_box: "", description: "", rackId });
+            setFormData({ name_box: "", description: "", rackId: rackId ?? "" });
             fetchData();
         } catch (err: any) { alert(err?.response?.data?.message || "Gagal membuat boks"); }
     };
+
+    // Filter boxes berdasarkan nama, deskripsi, atau kode
+    const filteredBoxes = boxes.filter((box) =>
+        [box.name_box ?? "", box.description ?? "", box.code ?? ""]
+            .some((v) => v.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
     return (
         <div className="space-y-10">
@@ -54,11 +61,29 @@ export default function BoxesPage() {
             </header>
 
             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                <div className="p-8 border-b border-slate-50 flex items-center justify-between gap-4 bg-slate-50/30">
                     <div className="relative group max-w-md w-full">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors" size={20} />
-                        <input className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all shadow-sm" placeholder="Search resources..." onChange={(e) => setSearchTerm(e.target.value)} />
+                        <input
+                            className="w-full pl-14 pr-10 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all shadow-sm"
+                            placeholder="Search by name, code, or description..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
                     </div>
+                    {searchTerm && (
+                        <p className="text-xs font-bold text-slate-400 whitespace-nowrap">
+                            {filteredBoxes.length} / {boxes.length} results
+                        </p>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto">
@@ -70,25 +95,54 @@ export default function BoxesPage() {
                     ) : (
                         <table className="w-full text-left">
                             <thead className="bg-slate-50/50 text-slate-400 uppercase tracking-widest text-[10px] font-black border-b border-slate-100">
-                                <tr><th className="px-10 py-6">ID Serial</th><th className="px-10 py-6">Details</th><th className="px-10 py-6">Date</th><th className="px-10 py-6 text-right">Actions</th></tr>
+                                <tr>
+                                    <th className="px-10 py-6">ID Serial</th>
+                                    <th className="px-10 py-6">Details</th>
+                                    <th className="px-10 py-6">Date</th>
+                                    <th className="px-10 py-6 text-right">Actions</th>
+                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {boxes.map((box) => (
-                                    <tr key={box.id} className="hover:bg-cyan-50/30 transition-colors group">
-                                        <td className="px-10 py-7"><span className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px]"><Hash size={12} className="inline mr-1" />{box.code}</span></td>
-                                        <td className="px-10 py-7">
-                                            <p className="font-black text-slate-900 text-lg">{box.name_box}</p>
-                                            <p className="text-xs text-slate-400 font-medium line-clamp-1">{box.description}</p>
-                                        </td>
-                                        <td className="px-10 py-7 text-xs font-bold text-slate-400"><Calendar size={14} className="inline mr-2" />{new Date(box.createdAt).toLocaleDateString()}</td>
-                                        <td className="px-10 py-7 text-right">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-cyan-600 hover:border-cyan-100 shadow-sm transition-all"><Edit3 size={16} /></button>
-                                                <button className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-100 shadow-sm transition-all"><Trash2 size={16} /></button>
-                                            </div>
+                                {filteredBoxes.length > 0 ? (
+                                    filteredBoxes.map((box) => (
+                                        <tr key={box.id} className="hover:bg-cyan-50/30 transition-colors group">
+                                            <td className="px-10 py-7">
+                                                <span className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px]">
+                                                    <Hash size={12} className="inline mr-1" />{box.code ?? "-"}
+                                                </span>
+                                            </td>
+                                            <td className="px-10 py-7">
+                                                <p className="font-black text-slate-900 text-lg">{box.name_box ?? "-"}</p>
+                                                <p className="text-xs text-slate-400 font-medium line-clamp-1">{box.description ?? ""}</p>
+                                            </td>
+                                            <td className="px-10 py-7 text-xs font-bold text-slate-400">
+                                                <Calendar size={14} className="inline mr-2" />
+                                                {box.createdAt ? new Date(box.createdAt).toLocaleDateString() : "-"}
+                                            </td>
+                                            <td className="px-10 py-7 text-right">
+                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-cyan-600 hover:border-cyan-100 shadow-sm transition-all"><Edit3 size={16} /></button>
+                                                    <button className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-100 shadow-sm transition-all"><Trash2 size={16} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="py-32 text-center">
+                                            <Search size={28} className="mx-auto mb-3 text-slate-200" />
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                                No resources match &quot;{searchTerm}&quot;
+                                            </p>
+                                            <button
+                                                onClick={() => setSearchTerm("")}
+                                                className="mt-4 text-[10px] text-cyan-600 font-black uppercase tracking-widest hover:underline"
+                                            >
+                                                Clear search
+                                            </button>
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     )}
@@ -105,11 +159,11 @@ export default function BoxesPage() {
                             <form onSubmit={handleCreate} className="space-y-8">
                                 <div className="space-y-3">
                                     <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">Identifier Name</label>
-                                    <input value={formData.name_box} onChange={(e) => setFormData({ ...formData, name_box: e.target.value })} className="w-full px-8 py-5 bg-slate-50 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white outline-none transition-all" placeholder="e.g. Finance-2026-A" />
+                                    <input value={formData.name_box ?? ""} onChange={(e) => setFormData({ ...formData, name_box: e.target.value })} className="w-full px-8 py-5 bg-slate-50 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white outline-none transition-all" placeholder="e.g. Finance-2026-A" />
                                 </div>
                                 <div className="space-y-3">
                                     <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">Specification</label>
-                                    <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-8 py-5 bg-slate-50 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white outline-none transition-all h-32 resize-none" placeholder="Describe the physical documents..." />
+                                    <textarea value={formData.description ?? ""} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-8 py-5 bg-slate-50 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white outline-none transition-all h-32 resize-none" placeholder="Describe the physical documents..." />
                                 </div>
                                 <button className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl hover:bg-cyan-600 transition-all">Authorize Registration</button>
                             </form>

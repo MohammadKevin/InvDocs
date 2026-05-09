@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Server,
@@ -17,8 +17,11 @@ import {
   Loader2,
   ArrowLeft,
   FileSearch,
+  Download,
 } from "lucide-react";
+
 import { api } from "@/lib/api";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type View = "divisions" | "racks" | "boxes" | "files";
 
@@ -62,12 +65,13 @@ function Card({
       whileHover={{ y: -5, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group relative p-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm flex flex-col gap-4 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left w-full"
+      className="group relative p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col gap-4 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left w-full"
     >
       <div className="flex justify-between items-start">
-        <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
           <Icon size={24} />
         </div>
+
         <div className="text-slate-300 group-hover:text-blue-600 transition-transform group-hover:translate-x-1">
           <ArrowRight size={20} />
         </div>
@@ -77,15 +81,58 @@ function Card({
         <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
           Open {subtitle}
         </p>
-        <h3 className="font-bold text-slate-900 text-lg leading-tight truncate">
+
+        <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight truncate">
           {title}
         </h3>
-        <p className="text-sm font-medium text-slate-500">
+
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
           {subtitle}
         </p>
       </div>
     </motion.button>
   );
+}
+
+const IMAGE_EXTS = [
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "bmp",
+  "svg",
+];
+
+function getFileExt(url: string): string {
+  return url.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+}
+
+function isImage(url: string): boolean {
+  return IMAGE_EXTS.includes(getFileExt(url));
+}
+
+function getPreviewUrl(fileUrl: string): string {
+  if (isImage(fileUrl)) return fileUrl;
+
+  return `https://docs.google.com/viewer?url=${encodeURIComponent(
+    fileUrl
+  )}&embedded=true`;
+}
+
+function handleDownload(fileUrl: string, fileName: string) {
+  const link = document.createElement("a");
+
+  link.href = fileUrl;
+  link.download = fileName;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
 }
 
 export default function DashboardPage() {
@@ -101,6 +148,7 @@ export default function DashboardPage() {
   const [divisions, setDivisions] = useState<string[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [documents, setDocuments] = useState<FileDoc[]>([]);
+
   const [previewFile, setPreviewFile] = useState<FileDoc | null>(null);
 
   useEffect(() => {
@@ -110,9 +158,13 @@ export default function DashboardPage() {
   async function fetchInitialData() {
     try {
       setLoading(true);
+
       const res = await api.get("/rack");
+
       const data: Rack[] = res.data?.data || res.data || [];
+
       setAllRacks(data);
+
       setDivisions(Array.from(new Set(data.map((r) => r.divisi))));
     } finally {
       setLoading(false);
@@ -121,6 +173,7 @@ export default function DashboardPage() {
 
   const handleBack = () => {
     setSearchTerm("");
+
     if (view === "files") setView("boxes");
     else if (view === "boxes") setView("racks");
     else if (view === "racks") setView("divisions");
@@ -135,11 +188,16 @@ export default function DashboardPage() {
   const openRack = async (rack: Rack) => {
     setSearchTerm("");
     setActiveRack(rack);
+
     setLoading(true);
+
     try {
       const res = await api.get("/boxes");
+
       const data: Box[] = res.data?.data || res.data || [];
+
       setBoxes(data.filter((b) => b.rackId === rack.id));
+
       setView("boxes");
     } finally {
       setLoading(false);
@@ -149,44 +207,75 @@ export default function DashboardPage() {
   const openBox = async (box: Box) => {
     setSearchTerm("");
     setActiveBox(box);
+
     setLoading(true);
+
     try {
       const res = await api.get("/documents");
+
       const data: FileDoc[] = res.data?.data || res.data || [];
+
       setDocuments(data.filter((d) => d.boxId === box.id));
+
       setView("files");
     } finally {
       setLoading(false);
     }
   };
 
-  // Logika Filter Search berdasarkan View yang aktif
   const filteredItems = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
+
     if (view === "divisions") {
-      return divisions.filter(d => d.toLowerCase().includes(term));
+      return divisions.filter((d) =>
+        d.toLowerCase().includes(term)
+      );
     }
+
     if (view === "racks") {
-      return allRacks.filter(r => r.divisi === activeDivision && r.name_rack.toLowerCase().includes(term));
+      return allRacks.filter(
+        (r) =>
+          r.divisi === activeDivision &&
+          r.name_rack.toLowerCase().includes(term)
+      );
     }
+
     if (view === "boxes") {
-      return boxes.filter(b => b.name_box.toLowerCase().includes(term));
+      return boxes.filter((b) =>
+        b.name_box.toLowerCase().includes(term)
+      );
     }
+
     if (view === "files") {
-      return documents.filter(d => d.title.toLowerCase().includes(term));
+      return documents.filter((d) =>
+        d.title.toLowerCase().includes(term)
+      );
     }
+
     return [];
-  }, [searchTerm, view, divisions, allRacks, activeDivision, boxes, documents]);
+  }, [
+    searchTerm,
+    view,
+    divisions,
+    allRacks,
+    activeDivision,
+    boxes,
+    documents,
+  ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10 text-slate-900 dark:text-white transition-colors">
+
+      {/* HEADER */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm">
             <LayoutGrid size={16} />
             <span>Digital Archive v1.0</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+
+          <h1 className="text-4xl font-black tracking-tight">
             {view === "divisions" && "Explore Library"}
             {view === "racks" && activeDivision}
             {view === "boxes" && activeRack?.name_rack}
@@ -196,9 +285,13 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-3">
           <div className="relative group w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"
+              size={18}
+            />
+
             <input
-              className="pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl w-full focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-sm"
+              className="pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 dark:text-white border-none rounded-2xl w-full focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none text-sm"
               placeholder={`Search in ${view}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -208,115 +301,213 @@ export default function DashboardPage() {
       </header>
 
       <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button 
+        <button
           onClick={() => {
             setView("divisions");
             setSearchTerm("");
           }}
-          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${view === "divisions" ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            view === "divisions"
+              ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
+          }`}
         >
-          <Home size={16} /> Root
+          <Home size={16} />
+          Root
         </button>
+
         {view !== "divisions" && (
           <>
-            <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-            <button 
+            <ChevronRight
+              size={16}
+              className="text-slate-300 flex-shrink-0"
+            />
+
+            <button
               onClick={handleBack}
               className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold hover:bg-slate-700 transition-all shadow-md"
             >
-              <ArrowLeft size={16} /> Back
+              <ArrowLeft size={16} />
+              Back
             </button>
           </>
         )}
       </nav>
 
+      {/* CONTENT */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 space-y-4">
-          <Loader2 className="animate-spin text-blue-600" size={48} />
-          <p className="text-slate-400 font-medium text-sm">Synchronizing data...</p>
+          <Loader2
+            className="animate-spin text-blue-600"
+            size={48}
+          />
+
+          <p className="text-slate-400 font-medium text-sm">
+            Synchronizing data...
+          </p>
         </div>
       ) : (
         <div className="min-h-[400px]">
           {filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
               <FileSearch size={64} strokeWidth={1} />
-              <p className="font-medium text-center">No results found for "{searchTerm}"</p>
+
+              <p className="font-medium text-center">
+                No results found for "{searchTerm}"
+              </p>
             </div>
           ) : (
-            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
               <AnimatePresence mode="popLayout">
-                {view === "divisions" && (filteredItems as string[]).map((div) => (
-                  <Card key={div} icon={Building2} title={div} subtitle="Division" onClick={() => openDivision(div)} />
-                ))}
 
-                {view === "racks" && (filteredItems as Rack[]).map((r) => (
-                  <Card key={r.id} icon={Server} title={r.name_rack} subtitle={r.status || "Active Rack"} onClick={() => openRack(r)} />
-                ))}
+                {view === "divisions" &&
+                  (filteredItems as string[]).map((div) => (
+                    <Card
+                      key={div}
+                      icon={Building2}
+                      title={div}
+                      subtitle="Division"
+                      onClick={() => openDivision(div)}
+                    />
+                  ))}
 
-                {view === "boxes" && (filteredItems as Box[]).map((b) => (
-                  <Card key={b.id} icon={Archive} title={b.name_box} subtitle={b.kode_box || "Archive Box"} onClick={() => openBox(b)} />
-                ))}
+                {view === "racks" &&
+                  (filteredItems as Rack[]).map((r) => (
+                    <Card
+                      key={r.id}
+                      icon={Server}
+                      title={r.name_rack}
+                      subtitle={r.status || "Active Rack"}
+                      onClick={() => openRack(r)}
+                    />
+                  ))}
 
-                {view === "files" && (filteredItems as FileDoc[]).map((d) => (
-                  <motion.div
-                    key={d.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="group p-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm hover:border-blue-500/30 transition-all flex flex-col h-full"
-                  >
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl w-fit mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      <FileText size={24} />
-                    </div>
-                    <h3 className="font-bold text-slate-900 mb-6 line-clamp-2 flex-grow">{d.title}</h3>
-                    <div className="flex gap-2 mt-auto">
-                      <button
-                        onClick={() => setPreviewFile(d)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors"
-                      >
-                        <Eye size={14} /> Preview
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                {view === "boxes" &&
+                  (filteredItems as Box[]).map((b) => (
+                    <Card
+                      key={b.id}
+                      icon={Archive}
+                      title={b.name_box}
+                      subtitle={b.kode_box || "Archive Box"}
+                      onClick={() => openBox(b)}
+                    />
+                  ))}
+
+                {view === "files" &&
+                  (filteredItems as FileDoc[]).map((d) => (
+                    <motion.div
+                      key={d.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="group p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all flex flex-col h-full"
+                    >
+                      <div className="p-3 bg-blue-50 dark:bg-slate-800 text-blue-600 rounded-2xl w-fit mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <FileText size={24} />
+                      </div>
+
+                      <h3 className="font-bold mb-6 line-clamp-2 flex-grow">
+                        {d.title}
+                      </h3>
+
+                      <div className="flex gap-2 mt-auto">
+                        <button
+                          onClick={() => setPreviewFile(d)}
+                          className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors"
+                        >
+                          <Eye size={14} />
+                          Preview
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleDownload(d.fileUrl, d.title)
+                          }
+                          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors"
+                        >
+                          <Download size={14} />
+                          Download
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
               </AnimatePresence>
             </motion.div>
           )}
         </div>
       )}
 
-      {/* Modal Preview */}
+      {/* MODAL */}
       <AnimatePresence>
         {previewFile && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white w-full max-w-6xl h-[90vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl"
+              className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[90vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="p-4 border-b flex justify-between items-center bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 bg-blue-50 dark:bg-slate-800 text-blue-600 rounded-lg flex-shrink-0">
                     <FileText size={18} />
                   </div>
-                  <span className="font-bold text-slate-800 truncate max-w-[200px] md:max-w-md">{previewFile.title}</span>
+
+                  <span className="font-bold truncate max-w-[200px] md:max-w-md">
+                    {previewFile.title}
+                  </span>
                 </div>
-                <button 
-                  onClick={() => setPreviewFile(null)}
-                  className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                >
-                  <X size={20} />
-                </button>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+
+                  <button
+                    onClick={() =>
+                      handleDownload(
+                        previewFile.fileUrl,
+                        previewFile.title
+                      )
+                    }
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
+                  >
+                    <Download size={16} />
+                    <span className="hidden sm:inline">
+                      Download
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setPreviewFile(null)}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
-              <div className="flex-1 bg-slate-100">
-                <iframe src={previewFile.fileUrl} className="w-full h-full border-none" title="Document Preview" />
+
+              <div className="flex-1 bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-auto">
+                {isImage(previewFile.fileUrl) ? (
+                  <img
+                    src={previewFile.fileUrl}
+                    alt={previewFile.title}
+                    className="max-w-full max-h-full object-contain p-4"
+                  />
+                ) : (
+                  <iframe
+                    src={getPreviewUrl(previewFile.fileUrl)}
+                    className="w-full h-full border-none"
+                    title="Document Preview"
+                  />
+                )}
               </div>
             </motion.div>
           </motion.div>
