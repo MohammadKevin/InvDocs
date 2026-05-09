@@ -6,18 +6,12 @@ import {
   Server,
   Archive,
   FileText,
-  ChevronRight,
-  Home,
-  Search,
-  Download,
   Building2,
   LayoutGrid,
-  ArrowRight,
-  X,
+  ArrowLeft,
   Eye,
   Loader2,
-  ArrowLeft,
-  FileSearch,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -60,16 +54,14 @@ function Card({
       whileHover={{ y: -5, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="p-6 bg-white rounded-3xl border border-cyan-100 shadow-sm flex flex-col gap-4 text-left w-full hover:shadow-cyan-200/30 hover:border-cyan-400 transition-all"
+      className="p-6 bg-white rounded-3xl border border-cyan-100 shadow-sm flex flex-col gap-4 text-left w-full"
     >
       <div className="p-3 bg-cyan-50 text-cyan-600 rounded-2xl">
         <Icon size={24} />
       </div>
 
       <div>
-        <h3 className="font-bold text-slate-900 text-lg truncate">
-          {title}
-        </h3>
+        <h3 className="font-bold text-lg truncate">{title}</h3>
         <p className="text-sm text-slate-500">{subtitle}</p>
       </div>
     </motion.button>
@@ -116,12 +108,23 @@ export default function DashboardPage() {
     else if (view === "racks") setView("divisions");
   };
 
-  const getBackLabel = () => {
-    if (view === "files") return "Back to Boxes";
-    if (view === "boxes") return "Back to Racks";
-    if (view === "racks") return "Back to Divisions";
-    return "";
-  };
+  const filteredDivisions = divisions.filter((d) =>
+    d.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredRacks = allRacks.filter(
+    (r) =>
+      r.divisi === activeDivision &&
+      r.name_rack.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredBoxes = boxes.filter((b) =>
+    b.name_box.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredFiles = documents.filter((f) =>
+    f.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const openDivision = (div: string) => {
     setActiveDivision(div);
@@ -159,40 +162,17 @@ export default function DashboardPage() {
     }
   };
 
-  const filteredItems = () => {
-    const t = searchTerm.toLowerCase();
-
-    if (view === "divisions")
-      return divisions.filter((d) => d.toLowerCase().includes(t));
-
-    if (view === "racks")
-      return allRacks.filter(
-        (r) => r.divisi === activeDivision && r.name_rack.toLowerCase().includes(t)
-      );
-
-    if (view === "boxes")
-      return boxes.filter((b) => b.name_box.toLowerCase().includes(t));
-
-    if (view === "files")
-      return documents.filter((d) => d.title.toLowerCase().includes(t));
-
-    return [];
-  };
-
-  const handlePreview = (file: FileDoc) => setPreviewFile(file);
-  const closePreview = () => setPreviewFile(null);
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
       {/* HEADER */}
       <header className="flex justify-between items-center">
         <div>
-          <div className="flex items-center gap-2 text-cyan-600 font-semibold text-sm">
+          <div className="flex items-center gap-2 text-cyan-600 text-sm">
             <LayoutGrid size={16} /> Digital Archive
           </div>
 
-          <h1 className="text-3xl font-black text-slate-900">
+          <h1 className="text-3xl font-black">
             {view === "divisions" && "Divisions"}
             {view === "racks" && activeDivision}
             {view === "boxes" && activeRack?.name_rack}
@@ -202,7 +182,7 @@ export default function DashboardPage() {
 
         <div className="flex gap-3 items-center">
           <input
-            className="px-4 py-2 bg-cyan-50 border border-cyan-100 rounded-xl focus:ring-2 focus:ring-cyan-400 outline-none"
+            className="px-4 py-2 bg-cyan-50 border rounded-xl"
             placeholder={`Search ${view}`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -213,7 +193,7 @@ export default function DashboardPage() {
               onClick={handleBack}
               className="flex items-center gap-2 px-3 py-2 bg-cyan-600 text-white rounded-xl"
             >
-              <ArrowLeft size={16} /> {getBackLabel()}
+              <ArrowLeft size={16} /> Back
             </button>
           )}
         </div>
@@ -226,43 +206,66 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {view === "divisions" && filteredItems().map((d: any) => (
-            <Card key={d} icon={Building2} title={d} subtitle="Division" onClick={() => openDivision(d)} />
-          ))}
 
-          {view === "racks" && filteredItems().map((r: Rack) => (
-            <Card key={r.id} icon={Server} title={r.name_rack} subtitle={r.status || "Rack"} onClick={() => openRack(r)} />
-          ))}
+          {view === "divisions" &&
+            filteredDivisions.map((d) => (
+              <Card
+                key={d}
+                icon={Building2}
+                title={d}
+                subtitle="Division"
+                onClick={() => openDivision(d)}
+              />
+            ))}
 
-          {view === "boxes" && filteredItems().map((b: Box) => (
-            <Card key={b.id} icon={Archive} title={b.name_box} subtitle={b.kode_box || "Box"} onClick={() => openBox(b)} />
-          ))}
+          {view === "racks" &&
+            filteredRacks.map((r) => (
+              <Card
+                key={r.id}
+                icon={Server}
+                title={r.name_rack}
+                subtitle={r.status || "Rack"}
+                onClick={() => openRack(r)}
+              />
+            ))}
 
-          {view === "files" && filteredItems().map((f: FileDoc) => (
-            <div key={f.id} className="p-5 bg-white rounded-2xl border border-cyan-100">
-              <FileText className="text-cyan-600" />
-              <h3 className="font-bold mt-2">{f.title}</h3>
+          {view === "boxes" &&
+            filteredBoxes.map((b) => (
+              <Card
+                key={b.id}
+                icon={Archive}
+                title={b.name_box}
+                subtitle={b.kode_box || "Box"}
+                onClick={() => openBox(b)}
+              />
+            ))}
 
-              <button
-                onClick={() => handlePreview(f)}
-                className="mt-4 bg-cyan-600 text-white px-4 py-2 rounded-xl flex gap-2"
+          {view === "files" &&
+            filteredFiles.map((f) => (
+              <div
+                key={f.id}
+                className="p-5 bg-white rounded-2xl border border-cyan-100"
               >
-                <Eye size={16} /> Preview
-              </button>
-            </div>
-          ))}
+                <FileText className="text-cyan-600" />
+                <h3 className="font-bold mt-2">{f.title}</h3>
+
+                <button
+                  onClick={() => setPreviewFile(f)}
+                  className="mt-4 bg-cyan-600 text-white px-4 py-2 rounded-xl flex gap-2"
+                >
+                  <Eye size={16} /> Preview
+                </button>
+              </div>
+            ))}
         </div>
       )}
 
-      {/* PREVIEW MODAL */}
+      {/* PREVIEW */}
       <AnimatePresence>
         {previewFile && (
           <motion.div
             className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closePreview}
+            onClick={() => setPreviewFile(null)}
           >
             <div
               className="bg-white w-full max-w-5xl h-[85vh] rounded-2xl overflow-hidden"
@@ -270,18 +273,22 @@ export default function DashboardPage() {
             >
               <div className="flex justify-between p-4 border-b">
                 <h2 className="font-bold">{previewFile.title}</h2>
-                <button onClick={closePreview}>
+                <button onClick={() => setPreviewFile(null)}>
                   <X />
                 </button>
               </div>
 
-              <div className="h-full">
-                {previewFile.fileUrl?.includes(".pdf") ? (
-                  <iframe src={previewFile.fileUrl} className="w-full h-full" />
-                ) : (
-                  <img src={previewFile.fileUrl} className="w-full h-full object-contain" />
-                )}
-              </div>
+              {previewFile.fileUrl?.includes(".pdf") ? (
+                <iframe
+                  src={previewFile.fileUrl}
+                  className="w-full h-full"
+                />
+              ) : (
+                <img
+                  src={previewFile.fileUrl}
+                  className="w-full h-full object-contain"
+                />
+              )}
             </div>
           </motion.div>
         )}
