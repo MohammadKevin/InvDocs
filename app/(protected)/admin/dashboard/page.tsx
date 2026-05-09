@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
 import {
   Server,
   Archive,
@@ -16,318 +15,148 @@ import {
   Download,
   Eye,
   X,
+  ArrowLeft,
+  ArrowUpRight,
 } from "lucide-react";
-
 import { api } from "@/lib/api";
-
-/* =========================
-   TYPES
-========================= */
-
-type Division = string;
-
-type Rack = {
-  id: string;
-  name_rack: string;
-  divisi: string;
-  status?: string;
-};
-
-type Box = {
-  id: string;
-  name_box: string;
-  kode_box?: string;
-  rackId: string;
-};
-
-type FileDoc = {
-  id: string;
-  title: string;
-  fileUrl: string;
-  status?: string;
-  boxId: string;
-};
-
-type DataState = {
-  divisions: Division[];
-  racks: Rack[];
-  boxes: Box[];
-  files: FileDoc[];
-};
 
 export default function DashboardPage() {
   const [view, setView] = useState<string>("divisions");
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
-
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
-  const [previewFile, setPreviewFile] = useState<FileDoc | null>(null);
-
+  const [previewFile, setPreviewFile] = useState<any | null>(null);
   const [activeDivision, setActiveDivision] = useState<string | null>(null);
-  const [activeRack, setActiveRack] = useState<Rack | null>(null);
-  const [activeBox, setActiveBox] = useState<Box | null>(null);
+  const [activeRack, setActiveRack] = useState<any | null>(null);
+  const [activeBox, setActiveBox] = useState<any | null>(null);
+  const [allRacks, setAllRacks] = useState<any[]>([]);
+  const [data, setData] = useState<any>({ divisions: [], racks: [], boxes: [], files: [] });
 
-  const [allRacks, setAllRacks] = useState<Rack[]>([]);
+  useEffect(() => { fetchDivisions(); }, []);
 
-  const [data, setData] = useState<DataState>({
-    divisions: [],
-    racks: [],
-    boxes: [],
-    files: [],
-  });
-
-  useEffect(() => {
-    fetchDivisions();
-  }, []);
-
-  /* =========================
-     FETCH DIVISIONS / RACKS
-  ========================= */
   async function fetchDivisions() {
     try {
       setLoading(true);
-
       const res = await api.get("/rack/my");
-      const racks: Rack[] = res.data?.data || res.data || [];
-
+      const racks = res.data?.data || res.data || [];
       setAllRacks(racks);
-
-      const uniqueDivisions: string[] = Array.from(
-        new Set(racks.map((i) => i.divisi))
-      );
-
-      setData((prev) => ({
-        ...prev,
-        divisions: uniqueDivisions,
-      }));
-    } finally {
-      setLoading(false);
-    }
+      const uniqueDivisions = Array.from(new Set(racks.map((i: any) => i.divisi)));
+      setData((prev: any) => ({ ...prev, divisions: uniqueDivisions }));
+    } finally { setLoading(false); }
   }
 
-  /* =========================
-     NAVIGATION
-  ========================= */
   const navigateTo = async (targetView: string, item: any) => {
     setLoading(true);
     setSearchTerm("");
-
     try {
       if (targetView === "racks") {
         setActiveDivision(item);
-
-        const filteredRacks = allRacks.filter(
-          (r) => r.divisi === item
-        );
-
-        setData((prev) => ({
-          ...prev,
-          racks: filteredRacks,
-        }));
-      } 
-      
-      else if (targetView === "boxes") {
+        setData((prev: any) => ({ ...prev, racks: allRacks.filter((r) => r.divisi === item) }));
+      } else if (targetView === "boxes") {
         setActiveRack(item);
-
         const res = await api.get("/boxes");
-        const boxes: Box[] = res.data?.data || res.data || [];
-
-        setData((prev) => ({
-          ...prev,
-          boxes: boxes.filter((b) => b.rackId === item.id),
-        }));
-      } 
-      
-      else if (targetView === "files") {
+        const boxes = res.data?.data || res.data || [];
+        setData((prev: any) => ({ ...prev, boxes: boxes.filter((b: any) => b.rackId === item.id) }));
+      } else if (targetView === "files") {
         setActiveBox(item);
-
         const res = await api.get("/documents");
-        const files: FileDoc[] = res.data?.data || res.data || [];
-
-        setData((prev) => ({
-          ...prev,
-          files: files.filter((d) => d.boxId === item.id),
-        }));
+        const files = res.data?.data || res.data || [];
+        setData((prev: any) => ({ ...prev, files: files.filter((d: any) => d.boxId === item.id) }));
       }
-
       setView(targetView);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  /* =========================
-     PREVIEW
-  ========================= */
-  const openPreview = (file: FileDoc) => {
-    setPreviewFile(file);
-    setPreviewOpen(true);
-  };
-
-  /* =========================
-     DOWNLOAD
-  ========================= */
-  const downloadFile = (url: string, title: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = title;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleBack = () => {
+    if (view === "files") setView("boxes");
+    else if (view === "boxes") setView("racks");
+    else if (view === "racks") setView("divisions");
   };
 
   return (
-    <>
-      <div className="space-y-10">
-        {/* HEADER */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-              <LayoutGrid size={12} />
-              Resource Navigator
-            </div>
-
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter">
-              Inventory Station
-            </h1>
+    <div className="space-y-10">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-600 text-white rounded-full text-[10px] font-bold uppercase tracking-[0.2em]">
+            <LayoutGrid size={12} /> Raknesia Explorer
           </div>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tight">
+            {view === "divisions" ? "Central Archives" : view === "racks" ? activeDivision : view === "boxes" ? activeRack?.name_rack : activeBox?.name_box}
+          </h1>
+          <p className="text-slate-400 font-medium text-sm flex items-center gap-2">
+            <Home size={14} /> / {view}
+          </p>
+        </div>
 
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" size={20} />
             <input
-              className="pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-[1.5rem] w-full md:w-80 shadow-sm focus:ring-4 focus:ring-blue-50 transition-all outline-none font-bold text-sm"
-              placeholder="Filter resources..."
-              value={searchTerm}
+              className="pl-12 pr-6 py-4 bg-slate-50 border-none rounded-[2rem] w-full md:w-96 shadow-inner focus:ring-2 focus:ring-cyan-600/10 transition-all outline-none font-bold text-slate-700 text-sm"
+              placeholder={`Search in ${view}...`}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-        </header>
+          {view !== "divisions" && (
+            <button onClick={handleBack} className="p-4 bg-slate-900 text-white rounded-full hover:scale-110 active:scale-95 transition-all shadow-lg">
+              <ArrowLeft size={24} />
+            </button>
+          )}
+        </div>
+      </header>
 
-        {/* LOADING */}
-        {loading ? (
-          <div className="py-40 flex flex-col items-center justify-center gap-5">
-            <Loader2 className="animate-spin text-blue-600" size={40} />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">
-              Fetching Assets...
-            </span>
-          </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={view}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6"
-            >
-              {/* DIVISIONS */}
-              {view === "divisions" &&
-                data.divisions.map((div, idx) => (
-                  <ResourceCard
-                    key={idx}
-                    icon={<Building2 />}
-                    title={div}
-                    subtitle="Department"
-                    onClick={() => navigateTo("racks", div)}
-                  />
-                ))}
-
-              {/* RACKS */}
-              {view === "racks" &&
-                data.racks.map((r, idx) => (
-                  <ResourceCard
-                    key={r.id || idx}
-                    icon={<Server />}
-                    title={r.name_rack}
-                    subtitle={`Status: ${r.status}`}
-                    onClick={() => navigateTo("boxes", r)}
-                  />
-                ))}
-
-              {/* BOXES */}
-              {view === "boxes" &&
-                data.boxes.map((b, idx) => (
-                  <ResourceCard
-                    key={b.id || idx}
-                    icon={<Archive />}
-                    title={b.name_box}
-                    subtitle={b.kode_box}
-                    onClick={() => navigateTo("files", b)}
-                  />
-                ))}
-
-              {/* FILES */}
-              {view === "files" &&
-                data.files.map((d) => (
-                  <div
-                    key={d.id}
-                    onDoubleClick={() => openPreview(d)}
-                    className="bg-white p-7 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col gap-6 cursor-pointer"
-                  >
-                    <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                      <FileText size={24} />
-                    </div>
-
-                    <h4 className="font-black text-slate-900">{d.title}</h4>
-
-                    <div className="flex gap-3 mt-auto">
-                      <button onClick={() => openPreview(d)} className="flex-1 bg-slate-900 text-white py-3 rounded-xl">
-                        <Eye size={14} /> Preview
-                      </button>
-
-                      <button
-                        onClick={() => downloadFile(d.fileUrl, d.title)}
-                        className="flex-1 bg-blue-600 text-white py-3 rounded-xl"
-                      >
-                        <Download size={14} /> Download
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </motion.div>
-          </AnimatePresence>
-        )}
-      </div>
-
-      {/* PREVIEW */}
-      <AnimatePresence>
-        {previewOpen && previewFile && (
-          <motion.div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-            <div className="w-[90%] h-[90%] bg-white rounded-2xl flex flex-col">
-              <div className="p-4 flex justify-between border-b">
-                <h2 className="font-bold">{previewFile.title}</h2>
-                <button onClick={() => setPreviewOpen(false)}>
-                  <X />
-                </button>
-              </div>
-
-              <iframe src={previewFile.fileUrl} className="flex-1 w-full" />
-            </div>
+      {loading ? (
+        <div className="py-40 flex flex-col items-center justify-center gap-6">
+          <Loader2 className="animate-spin text-cyan-500" size={60} />
+          <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-300">Synchronizing...</span>
+        </div>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div key={view} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {view === "divisions" && data.divisions.map((div: any) => (
+              <ResourceCard key={div} icon={<Building2 size={32} />} title={div} subtitle="Division" onClick={() => navigateTo("racks", div)} />
+            ))}
+            {view === "racks" && data.racks.map((r: any) => (
+              <ResourceCard key={r.id} icon={<Server size={32} />} title={r.name_rack} subtitle={`Status: ${r.status}`} onClick={() => navigateTo("boxes", r)} />
+            ))}
+            {view === "boxes" && data.boxes.map((b: any) => (
+              <ResourceCard key={b.id} icon={<Archive size={32} />} title={b.name_box} subtitle={`Code: ${b.kode_box || b.code}`} onClick={() => navigateTo("files", b)} />
+            ))}
+            {view === "files" && data.files.map((d: any) => (
+              <FileCard key={d.id} doc={d} />
+            ))}
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </AnimatePresence>
+      )}
+    </div>
   );
 }
 
-/* =========================
-   CARD COMPONENT
-========================= */
-function ResourceCard({
-  icon,
-  title,
-  subtitle,
-  onClick,
-}: any) {
+function ResourceCard({ icon, title, subtitle, onClick }: any) {
   return (
-    <button
-      onClick={onClick}
-      className="p-6 bg-white rounded-2xl border shadow-sm flex flex-col gap-4"
-    >
-      <div>{icon}</div>
-      <h3 className="font-bold">{title}</h3>
-      <p className="text-xs text-gray-400">{subtitle}</p>
-    </button>
+    <motion.button whileHover={{ y: -10 }} onClick={onClick} className="group p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-6 text-left transition-all hover:shadow-xl hover:border-cyan-200">
+      <div className="p-4 bg-cyan-50 text-cyan-600 rounded-2xl group-hover:bg-cyan-500 group-hover:text-white transition-all w-fit">{icon}</div>
+      <div>
+        <h3 className="text-xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors">{title}</h3>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p>
+      </div>
+    </motion.button>
+  );
+}
+
+function FileCard({ doc }: any) {
+  return (
+    <motion.div whileHover={{ y: -10 }} className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+      <div className="p-4 bg-cyan-50 text-cyan-600 rounded-2xl w-fit mb-4"><FileText size={24} /></div>
+      <h4 className="font-black text-slate-900 mb-6 truncate">{doc.title}</h4>
+      <div className="grid grid-cols-2 gap-2">
+        <button className="bg-slate-900 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-cyan-600 transition-colors">
+          <Eye size={14} /> View
+        </button>
+        <button className="bg-cyan-50 text-cyan-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-cyan-500 hover:text-white transition-colors">
+          <Download size={14} /> Get
+        </button>
+      </div>
+    </motion.div>
   );
 }

@@ -4,24 +4,24 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
-  UserPlus, 
   MoreVertical, 
   ShieldCheck, 
   Loader2, 
   AlertCircle,
   Mail,
   Calendar,
-  Filter
+  Filter,
+  UserCircle2,
+  RefreshCcw
 } from "lucide-react";
 import { api } from "@/lib/api";
 
-// Interface berdasarkan data dari Railway API
 interface User {
   id: string;
   name: string;
   email: string;
   role: string;
-  createdAt: string; // Menggunakan stempel waktu asli dari database
+  createdAt: string;
 }
 
 export default function UsersPage() {
@@ -30,36 +30,29 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
 
-  // 🔥 1. FETCH DATA DARI RAILWAY API
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        
-        // Memanggil endpoint https://invdocs-api-production.up.railway.app/api/users
-        const res = await api.get("/users");
-        
-        // Menangani struktur response data
-        const result = res.data.data || res.data;
-        
-        if (Array.isArray(result)) {
-          setUsers(result);
-        } else {
-          setError("Format data dari server tidak dikenali.");
-        }
-      } catch (err: any) {
-        console.error("Fetch Error:", err);
-        setError(err.response?.data?.message || "Koneksi ke Railway API terputus.");
-      } finally {
-        setLoading(false);
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api.get("/users");
+      const result = res.data.data || res.data;
+      
+      if (Array.isArray(result)) {
+        setUsers(result);
+      } else {
+        setError("System encountered an unrecognized data structure.");
       }
-    };
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Lost connection to Railway API.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  // 🔍 2. SEARCH LOGIC
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -69,107 +62,112 @@ export default function UsersPage() {
     <motion.div 
       initial={{ opacity: 0, y: 10 }} 
       animate={{ opacity: 1, y: 0 }} 
-      className="space-y-6"
+      className="space-y-8"
     >
-      {/* SECTION: HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">
-            User Directory
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">
+            Member Registry
           </h1>
-          <p className="text-slate-500 text-sm font-medium italic">
-            Monitoring {users.length} registered system accounts.
+          <p className="text-cyan-600 text-xs font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
+            <UserCircle2 size={14} /> Total Personnel: {users.length}
           </p>
         </div>
+        
+        <button 
+          onClick={fetchUsers}
+          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-500 hover:text-cyan-600 hover:border-cyan-200 transition-all shadow-sm"
+        >
+          <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
+          Sync Data
+        </button>
       </div>
 
-      {/* SECTION: TABLE CONTAINER */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        {/* Toolbar */}
-        <div className="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-sm font-medium group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+      <div className="bg-white rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50 flex flex-wrap items-center justify-between gap-6 bg-slate-50/30">
+          <div className="relative flex-1 min-w-[300px] group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors" size={20} />
             <input 
               type="text" 
-              placeholder="Filter by name or email..." 
+              placeholder="Search by identity or credentials..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+              className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all shadow-sm"
             />
           </div>
-          <button className="p-3 text-slate-400 hover:bg-slate-50 rounded-xl transition-all">
+          <button className="p-4 bg-slate-900 text-white rounded-2xl hover:bg-cyan-600 transition-all shadow-lg shadow-slate-200">
             <Filter size={20} />
           </button>
         </div>
 
-        {/* Content Table */}
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+            <div className="flex flex-col items-center justify-center py-40 space-y-4">
+              <div className="relative">
+                <div className="w-12 h-12 border-4 border-cyan-100 rounded-full animate-pulse"></div>
+                <Loader2 className="absolute top-0 animate-spin text-cyan-600" size={48} />
+              </div>
               <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
-                Synchronizing with Railway...
+                Authorizing Access to Railway...
               </p>
             </div>
           ) : error ? (
-            <div className="py-32 flex flex-col items-center justify-center text-red-500 space-y-3">
-              <AlertCircle size={40} className="opacity-50" />
-              <p className="font-bold text-sm">{error}</p>
-              <button onClick={() => window.location.reload()} className="text-xs bg-red-50 px-4 py-2 rounded-lg font-black uppercase">Retry Connection</button>
+            <div className="py-40 flex flex-col items-center justify-center text-rose-500 space-y-4">
+              <AlertCircle size={48} className="opacity-20" />
+              <p className="font-black uppercase tracking-widest text-xs">{error}</p>
+              <button onClick={fetchUsers} className="text-[10px] bg-rose-50 px-6 py-3 rounded-xl font-black uppercase tracking-widest border border-rose-100">Establish Handshake</button>
             </div>
           ) : (
-            <table className="w-full text-left text-sm font-bold border-collapse">
-              <thead className="bg-slate-50/50 text-slate-400 border-b border-slate-100 uppercase tracking-widest text-[10px]">
-                <tr>
-                  <th className="px-8 py-5">System Member</th>
-                  <th className="px-8 py-5">Role Authority</th>
-                  <th className="px-8 py-5">Joined Date</th>
-                  <th className="px-8 py-5 text-right">Actions</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 text-slate-400 border-b border-slate-100 uppercase tracking-[0.15em] text-[10px] font-black">
+                  <th className="px-10 py-6">System Member</th>
+                  <th className="px-10 py-6">Privilege Level</th>
+                  <th className="px-10 py-6">Registration</th>
+                  <th className="px-10 py-6 text-right">Settings</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                <AnimatePresence>
+              <tbody className="divide-y divide-slate-50">
+                <AnimatePresence mode="popLayout">
                   {filteredUsers.length > 0 ? (
                     filteredUsers.map((user, i) => (
                       <motion.tr 
                         key={user.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="hover:bg-slate-50/50 transition-colors group"
+                        transition={{ delay: i * 0.02 }}
+                        className="hover:bg-cyan-50/20 transition-colors group"
                       >
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-black">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center font-black group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
                               {user.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-black text-slate-900 leading-none mb-1">{user.name}</p>
-                              <div className="flex items-center gap-1.5 text-[11px] text-slate-400 lowercase font-medium">
+                              <p className="font-black text-slate-900 text-sm group-hover:text-cyan-600 transition-colors uppercase tracking-tight">{user.name}</p>
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-400 lowercase font-bold mt-0.5">
                                 <Mail size={10} /> {user.email}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-5">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] uppercase tracking-wider font-black border border-blue-100">
-                            <ShieldCheck size={12} /> {user.role}
+                        <td className="px-10 py-6">
+                          <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                            user.role === 'admin' 
+                            ? 'bg-cyan-50 text-cyan-700 border-cyan-100' 
+                            : 'bg-slate-50 text-slate-600 border-slate-100'
+                          }`}>
+                            <ShieldCheck size={12} strokeWidth={2.5} /> {user.role}
                           </span>
                         </td>
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-2 text-slate-500 font-medium text-xs italic">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-2 text-slate-500 font-bold text-xs italic tracking-tighter">
                             <Calendar size={14} className="text-slate-300" />
-                            {user.createdAt ? (
-                              new Date(user.createdAt).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                              })
-                            ) : "---"}
+                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : "---"}
                           </div>
                         </td>
-                        <td className="px-8 py-5 text-right">
-                          <button className="p-2.5 text-slate-300 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
+                        <td className="px-10 py-6 text-right">
+                          <button className="p-3 text-slate-300 hover:text-cyan-600 hover:bg-white rounded-xl transition-all shadow-none hover:shadow-sm">
                             <MoreVertical size={20} />
                           </button>
                         </td>
@@ -177,8 +175,8 @@ export default function UsersPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-20 text-center text-slate-400 uppercase tracking-widest text-[10px] font-black italic">
-                        No matching members found
+                      <td colSpan={4} className="py-32 text-center">
+                        <p className="text-slate-400 uppercase tracking-[0.4em] text-[10px] font-black italic">Null set: No matching profiles</p>
                       </td>
                     </tr>
                   )}
