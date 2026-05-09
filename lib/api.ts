@@ -138,4 +138,35 @@ export const downloadFile = async (
   link.remove();
 };
 
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("token");
+
+      console.log("TOKEN:", token);
+
+      console.log("REQUEST URL:", config.url);
+
+      console.log(
+        "AUTH HEADER BEFORE:",
+        config.headers.Authorization
+      );
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      console.log(
+        "AUTH HEADER AFTER:",
+        config.headers.Authorization
+      );
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api;

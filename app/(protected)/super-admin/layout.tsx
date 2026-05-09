@@ -8,12 +8,12 @@ import {
   LayoutDashboard,
   Users,
   Layers,
-  Archive,
   LogOut,
   Menu,
   X,
   Bell,
   Search,
+  Command
 } from "lucide-react";
 import Image from "next/image";
 
@@ -23,196 +23,123 @@ const sidebarItems = [
   { name: "Racks", href: "/super-admin/racks", icon: Layers },
 ];
 
-export default function SuperAdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // ================= LOGOUT FIXED =================
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
+    localStorage.clear();
     setIsMobileOpen(false);
-
-    // 🔥 redirect ke landing page
     router.replace("/");
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 sticky top-0 h-screen">
-        {/* Logo */}
-        <div className="p-6">
+    <div className="min-h-screen bg-[#F8FAFC] flex font-sans selection:bg-blue-100 selection:text-blue-700 text-slate-900">
+      {/* SIDEBAR DESKTOP */}
+      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200/60 sticky top-0 h-screen z-50">
+        <div className="p-8">
           <div className="flex items-center gap-3 px-2">
-            <Image
-              src="/icon.png"
-              alt="InvDocs Logo"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-blue-200"
-            />
-            <span className="font-bold text-[15px] tracking-tight text-slate-800">
-              PT. Gudang Baru Berkah
-            </span>
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative flex items-center justify-center w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100">
+                <Command className="text-blue-600" size={22} />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-sm tracking-tight text-slate-800 leading-none">InvDocs</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Archive System</span>
+            </div>
           </div>
         </div>
 
-        {/* Menu */}
-        <nav className="flex-1 px-4 space-y-1 mt-4">
+        <nav className="flex-1 px-4 space-y-1.5 mt-4">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href;
-
             return (
               <Link key={item.name} href={item.href}>
-                <motion.div
-                  whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
-                      ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                >
-                  <item.icon size={20} />
-                  {item.name}
-                </motion.div>
+                <div className="relative group">
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 bg-blue-50/80 rounded-2xl border border-blue-100/50"
+                    />
+                  )}
+                  <motion.div
+                    whileHover={{ x: 4 }}
+                    className={`relative flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold transition-all ${isActive ? "text-blue-600" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                  >
+                    <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                    {item.name}
+                  </motion.div>
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* ================= SIGN OUT ================= */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-6 border-t border-slate-100/60">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+            className="group flex items-center gap-3 w-full px-5 py-4 text-sm font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
           >
-            <LogOut size={20} />
+            <LogOut size={20} className="group-hover:rotate-180 transition-transform duration-500" />
             Sign Out
           </button>
         </div>
       </aside>
 
-      {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TOPBAR */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
-          {/* Hamburger */}
-          <button
-            onClick={() => setIsMobileOpen(true)}
-            className="lg:hidden p-2 text-slate-500"
-          >
-            <Menu size={24} />
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40">
+          <button onClick={() => setIsMobileOpen(true)} className="lg:hidden p-2.5 bg-slate-50 text-slate-600 rounded-xl">
+            <Menu size={22} />
           </button>
 
-          {/* Search */}
-          <div className="hidden md:flex items-center bg-slate-100 px-3 py-1.5 rounded-lg w-96 border border-slate-200">
-            <Search size={18} className="text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search data..."
-              className="bg-transparent border-none focus:ring-0 text-sm ml-2 w-full outline-none text-slate-600"
-            />
+          <div className="hidden md:flex items-center bg-slate-100/80 px-4 py-2.5 rounded-2xl w-96 group focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50 transition-all border border-transparent focus-within:border-blue-100">
+            <Search size={18} className="text-slate-400 group-focus-within:text-blue-600" />
+            <input type="text" placeholder="Quick Search..." className="bg-transparent border-none focus:ring-0 text-sm ml-3 w-full outline-none text-slate-600 font-medium" />
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full relative">
+          <div className="flex items-center gap-5">
+            <button className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-xl relative transition-colors">
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white ring-2 ring-rose-500/20"></span>
             </button>
 
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+            <div className="flex items-center gap-4 pl-5 border-l border-slate-200">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-800">Super Admin</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Master Control
-                </p>
+                <p className="text-[13px] font-black text-slate-900 leading-tight">Super Admin</p>
+                <p className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.1em]">Network Master</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-white shadow-sm" />
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-white shadow-lg shadow-blue-100 overflow-hidden" />
             </div>
           </div>
         </header>
 
-        {/* PAGE CONTENT */}
-        <div className="p-4 lg:p-8 overflow-y-auto">{children}</div>
+        <div className="p-6 lg:p-10">{children}</div>
       </main>
 
-      {/* ================= MOBILE SIDEBAR ================= */}
+      {/* MOBILE SIDEBAR OVERLAY & ASIDE (Reuse Logic) */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
-            {/* Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileOpen(false)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[40] lg:hidden"
-            />
-
-            {/* Sidebar */}
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "tween" }}
-              className="fixed inset-y-0 left-0 w-72 bg-white z-[50] flex flex-col lg:hidden"
-            >
-              {/* Header */}
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3 px-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
-                    I
-                  </div>
-                  <span className="font-bold text-xl tracking-tight text-slate-800">
-                    InvDocs
-                  </span>
-                </div>
-
-                <button onClick={() => setIsMobileOpen(false)}>
-                  <X size={24} />
-                </button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMobileOpen(false)} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] lg:hidden" />
+            <motion.aside initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed inset-y-0 left-0 w-80 bg-white z-[70] flex flex-col lg:hidden p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-10">
+                <span className="font-black text-xl text-blue-600 uppercase tracking-tighter italic">InvDocs</span>
+                <button onClick={() => setIsMobileOpen(false)} className="p-2 bg-slate-50 rounded-xl text-slate-400"><X size={20} /></button>
               </div>
-
-              {/* MENU */}
-              <nav className="flex flex-col gap-2 p-4 flex-1">
-                {sidebarItems.map((item) => {
-                  const isActive = pathname === item.href;
-
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsMobileOpen(false)}
-                    >
-                      <div
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${isActive
-                            ? "bg-blue-50 text-blue-600"
-                            : "text-slate-600 hover:bg-slate-50"
-                          }`}
-                      >
-                        <item.icon size={20} />
-                        {item.name}
-                      </div>
-                    </Link>
-                  );
-                })}
+              <nav className="space-y-2">
+                {sidebarItems.map((item) => (
+                  <Link key={item.name} href={item.href} onClick={() => setIsMobileOpen(false)}>
+                    <div className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all ${pathname === item.href ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "text-slate-500"}`}>
+                      <item.icon size={20} /> {item.name}
+                    </div>
+                  </Link>
+                ))}
               </nav>
-
-              {/* ================= SIGN OUT MOBILE ================= */}
-              <div className="p-4 border-t border-slate-100 mt-auto">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                >
-                  <LogOut size={20} />
-                  Sign Out
-                </button>
-              </div>
             </motion.aside>
           </>
         )}

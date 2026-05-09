@@ -8,9 +8,26 @@ import {
     X,
     Loader2,
     Layers,
+    User,
+    Mail,
+    Shield,
+    Layout,
+    Briefcase,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
+
+enum Divisi {
+    HR = "HR",
+    Finance = "Finance",
+    IT = "IT",
+    Marketing = "Marketing",
+    Sales = "Sales",
+    Operations = "Operations",
+    Legal = "Legal",
+    RnD = "RnD",
+    Admin = "Admin",
+}
 
 export default function RacksPage() {
     const [form, setForm] = useState({
@@ -18,32 +35,36 @@ export default function RacksPage() {
         email: "",
         password: "",
         name_rack: "",
-        divisi: "IT",
+        divisi: Divisi.IT,
     });
 
     const [racks, setRacks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-
-    const [isSubmitting, setIsSubmitting] =
-        useState(false);
-
-    const [actionLoading, setActionLoading] =
-        useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     const fetchPendingRacks = async () => {
         try {
             setLoading(true);
 
-            const res = await api.get(
-                "/rack/pending",
+            const res = await api.get("/rack/pending");
+
+            const rawData = res?.data?.data || res?.data || [];
+
+            const data = Array.isArray(rawData) ? rawData : [];
+
+            const clean = data.filter(
+                (r: any) =>
+                    r &&
+                    typeof r === "object" &&
+                    r.id &&
+                    r.name_rack
             );
 
-            setRacks(res.data);
+            setRacks(clean);
         } catch (err) {
-            console.error(
-                "Gagal load rack:",
-                err,
-            );
+            console.error("LOAD ERROR:", err);
+            setRacks([]);
         } finally {
             setLoading(false);
         }
@@ -53,42 +74,47 @@ export default function RacksPage() {
         fetchPendingRacks();
     }, []);
 
-    const handleCreateAdmin = async (
-        e: React.FormEvent,
-    ) => {
+    const handleCreateAdmin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (
+            !form.name ||
+            !form.email ||
+            !form.password ||
+            !form.name_rack
+        ) {
+            return alert("Harap isi semua field!");
+        }
 
         try {
             setIsSubmitting(true);
 
-            await api.post(
+            const res = await api.post(
                 "/auth/register-admin",
-                {
-                    name: form.name,
-                    email: form.email,
-                    password: form.password,
-                    name_rack: form.name_rack,
-                    divisi: form.divisi,
-                },
+                form
             );
 
-            alert(
-                "Admin Rack Berhasil Dibuat! 🎉",
-            );
+            const newRack = res?.data?.rack || res?.data;
+
+            if (newRack?.id) {
+                setRacks((prev) => [newRack, ...prev]);
+            } else {
+                await fetchPendingRacks();
+            }
 
             setForm({
                 name: "",
                 email: "",
                 password: "",
                 name_rack: "",
-                divisi: "IT",
+                divisi: Divisi.IT,
             });
 
-            fetchPendingRacks();
+            alert("Admin & Rack berhasil didaftarkan! 🎉");
         } catch (err: any) {
             alert(
-                err.response?.data?.message ||
-                "Gagal membuat admin rack",
+                err?.response?.data?.message ||
+                "Gagal registrasi admin"
             );
         } finally {
             setIsSubmitting(false);
@@ -97,27 +123,20 @@ export default function RacksPage() {
 
     const handleStatusUpdate = async (
         id: string,
-        type: "approve" | "reject",
+        type: "approve" | "reject"
     ) => {
         try {
             setActionLoading(id);
 
-            await api.patch(
-                `/rack/${id}/${type}`,
-            );
+            await api.patch(`/rack/${id}/${type}`);
 
-            alert(
-                `Rak berhasil di-${type === "approve"
-                    ? "setujui"
-                    : "tolak"
-                }!`,
+            setRacks((prev) =>
+                prev.filter((r) => r?.id !== id)
             );
-
-            fetchPendingRacks();
         } catch (err: any) {
             alert(
-                err.response?.data?.message ||
-                `Gagal melakukan ${type}`,
+                err?.response?.data?.message ||
+                `Gagal melakukan ${type}`
             );
         } finally {
             setActionLoading(null);
@@ -125,178 +144,101 @@ export default function RacksPage() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="grid lg:grid-cols-3 gap-8 text-slate-900">
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header className="flex flex-col gap-2">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                    Rack Provisions
+                </h1>
 
+                <p className="text-slate-500 font-medium italic">
+                    Manage administrative access and hardware unit approvals.
+                </p>
+            </header>
+
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
                 <motion.div
-                    initial={{
-                        opacity: 0,
-                        x: -20,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        x: 0,
-                    }}
-                    className="lg:col-span-1 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm h-fit sticky top-24"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="lg:col-span-4 bg-white p-8 rounded-[2.5rem] border border-slate-200/60 shadow-[0_10px_40px_rgba(0,0,0,0.02)] sticky top-24"
                 >
-                    <div className="flex items-center gap-2 mb-6">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                            <Plus size={18} />
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="p-2.5 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
+                            <Plus size={20} />
                         </div>
 
-                        <h3 className="font-bold uppercase text-xs tracking-widest">
-                            Register Admin
+                        <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-800">
+                            Register Unit
                         </h3>
                     </div>
 
                     <form
                         onSubmit={handleCreateAdmin}
-                        className="space-y-4 text-sm font-bold"
+                        className="space-y-4"
                     >
+                        <InputField
+                            icon={<User size={18} />}
+                            placeholder="Admin Full Name"
+                            value={form.name}
+                            onChange={(v: string) =>
+                                setForm({ ...form, name: v })
+                            }
+                        />
 
-                        <div className="space-y-1">
-                            <label className="text-slate-600 ml-1 uppercase text-[10px]">
-                                Full Name
-                            </label>
+                        <InputField
+                            icon={<Mail size={18} />}
+                            type="email"
+                            placeholder="Email Address"
+                            value={form.email}
+                            onChange={(v: string) =>
+                                setForm({ ...form, email: v })
+                            }
+                        />
 
-                            <input
-                                type="text"
-                                required
-                                value={form.name}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        name:
-                                            e.target.value,
-                                    })
-                                }
-                                placeholder="John Doe"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                            />
-                        </div>
+                        <InputField
+                            icon={<Shield size={18} />}
+                            type="password"
+                            placeholder="Password"
+                            value={form.password}
+                            onChange={(v: string) =>
+                                setForm({ ...form, password: v })
+                            }
+                        />
 
-                        <div className="space-y-1">
-                            <label className="text-slate-600 ml-1 uppercase text-[10px]">
-                                Email Address
-                            </label>
+                        <InputField
+                            icon={<Layout size={18} />}
+                            placeholder="Rack Name (e.g. Rack-01)"
+                            value={form.name_rack}
+                            onChange={(v: string) =>
+                                setForm({ ...form, name_rack: v })
+                            }
+                        />
 
-                            <input
-                                type="email"
-                                required
-                                value={form.email}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        email:
-                                            e.target.value,
-                                    })
-                                }
-                                placeholder="john@example.com"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                            />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-slate-600 ml-1 uppercase text-[10px]">
-                                Password
-                            </label>
-
-                            <input
-                                type="password"
-                                required
-                                value={form.password}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        password:
-                                            e.target.value,
-                                    })
-                                }
-                                placeholder="••••••••"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                            />
-                        </div>
-
-                        <div className="space-y-1 text-slate-600">
-                            <label className="font-bold ml-1 uppercase text-[10px]">
-                                Rack Name
-                            </label>
-
-                            <input
-                                type="text"
-                                required
-                                value={form.name_rack}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        name_rack:
-                                            e.target.value,
-                                    })
-                                }
-                                placeholder="Warehouse Alpha"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                            />
-                        </div>
-
-                        <div className="space-y-1 text-slate-600">
-                            <label className="font-bold ml-1 uppercase text-[10px]">
-                                Division
-                            </label>
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                                <Briefcase size={18} />
+                            </div>
 
                             <select
-                                required
                                 value={form.divisi}
                                 onChange={(e) =>
                                     setForm({
                                         ...form,
-                                        divisi:
-                                            e.target.value,
+                                        divisi: e.target.value as Divisi,
                                     })
                                 }
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                                className="w-full pl-12 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold appearance-none focus:ring-4 focus:ring-blue-500/10 focus:bg-white transition-all outline-none"
                             >
-                                <option value="HR">
-                                    HR
-                                </option>
-
-                                <option value="Finance">
-                                    Finance
-                                </option>
-
-                                <option value="IT">
-                                    IT
-                                </option>
-
-                                <option value="Marketing">
-                                    Marketing
-                                </option>
-
-                                <option value="Sales">
-                                    Sales
-                                </option>
-
-                                <option value="Operations">
-                                    Operations
-                                </option>
-
-                                <option value="Legal">
-                                    Legal
-                                </option>
-
-                                <option value="RnD">
-                                    RnD
-                                </option>
-
-                                <option value="Admin">
-                                    Admin
-                                </option>
+                                {Object.values(Divisi).map((dept) => (
+                                    <option key={dept} value={dept}>
+                                        {dept}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
                         <button
-                            type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-4 bg-slate-900 text-white rounded-2xl mt-4 shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4 shadow-xl shadow-slate-200 hover:shadow-blue-200"
                         >
                             {isSubmitting ? (
                                 <Loader2
@@ -304,184 +246,203 @@ export default function RacksPage() {
                                     size={18}
                                 />
                             ) : (
-                                "Create Admin Rack"
+                                "Initialize System Access"
                             )}
                         </button>
                     </form>
                 </motion.div>
 
                 <motion.div
-                    initial={{
-                        opacity: 0,
-                        x: 20,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        x: 0,
-                    }}
-                    className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="lg:col-span-8 bg-white rounded-[2.5rem] border border-slate-200/60 shadow-[0_10px_40px_rgba(0,0,0,0.02)] overflow-hidden"
                 >
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h3 className="font-bold uppercase text-xs tracking-widest">
-                            Rack Approval Queue
+                    <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                        <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-500">
+                            Pending Approvals
                         </h3>
 
-                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
-                            {racks.length} Waiting
-                            Requests
+                        <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-black text-blue-600 shadow-sm">
+                            {racks.length} REQUESTS
                         </span>
                     </div>
 
-                    <div className="overflow-x-auto text-sm">
+                    <div className="overflow-x-auto">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <div className="py-32 flex flex-col items-center justify-center gap-4">
                                 <Loader2
                                     className="animate-spin text-blue-600"
                                     size={32}
                                 />
 
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-                                    Syncing with Railway
-                                    API...
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                                    Synchronizing Data...
                                 </p>
                             </div>
                         ) : racks.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                                <Check className="w-12 h-12 mb-2 opacity-20" />
+                            <div className="py-32 text-center text-slate-400">
+                                <Layers
+                                    size={48}
+                                    className="mx-auto mb-4 opacity-10"
+                                />
 
-                                <p className="font-bold uppercase tracking-widest text-[10px]">
-                                    Semua antrean bersih
+                                <p className="font-bold italic text-sm">
+                                    No pending rack requests found.
                                 </p>
                             </div>
                         ) : (
-                            <table className="w-full text-left font-bold">
-                                <thead className="bg-slate-50/50 text-slate-400 uppercase tracking-widest text-[10px] border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-8 py-5 italic">
-                                            Rack Name
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-50">
+                                        <th className="px-8 py-5 text-left font-black">
+                                            Unit Identity
                                         </th>
 
-                                        <th className="px-8 py-5 italic">
-                                            Division
+                                        <th className="px-8 py-5 text-left font-black">
+                                            Department
                                         </th>
 
-                                        <th className="px-8 py-5 italic text-center">
-                                            Action
+                                        <th className="px-8 py-5 text-right font-black">
+                                            Control
                                         </th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-slate-100">
-                                    <AnimatePresence>
-                                        {racks.map(
-                                            (rack: any) => (
+                                <tbody className="divide-y divide-slate-50">
+                                    <AnimatePresence mode="popLayout">
+                                        {racks
+                                            .filter((rack) => rack?.id)
+                                            .map((rack) => (
                                                 <motion.tr
-                                                    key={rack.id}
+                                                    key={rack?.id}
                                                     layout
-                                                    initial={{
-                                                        opacity: 0,
-                                                    }}
-                                                    animate={{
-                                                        opacity: 1,
-                                                    }}
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
                                                     exit={{
                                                         opacity: 0,
-                                                        x: 20,
+                                                        scale: 0.95,
                                                     }}
-                                                    className="hover:bg-slate-50/50 transition-colors"
+                                                    className="group hover:bg-slate-50/50 transition-colors"
                                                 >
-                                                    <td className="px-8 py-5">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-slate-100 text-slate-400 rounded-lg">
-                                                                <Layers
-                                                                    size={18}
-                                                                />
+                                                    <td className="px-8 py-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                                                                <Layers size={18} />
                                                             </div>
 
-                                                            <div>
-                                                                <p className="text-slate-900">
-                                                                    {
-                                                                        rack.name_rack
-                                                                    }
-                                                                </p>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-black text-slate-800 text-sm">
+                                                                    {rack?.name_rack ||
+                                                                        "Unnamed Rack"}
+                                                                </span>
 
-                                                                <p className="text-[10px] text-slate-400 uppercase tracking-tighter font-black">
+                                                                <span className="text-[10px] text-slate-400 font-medium">
                                                                     ID:{" "}
-                                                                    {rack.id.slice(
-                                                                        0,
-                                                                        8,
-                                                                    )}
-                                                                </p>
+                                                                    {String(
+                                                                        rack?.id || ""
+                                                                    ).slice(0, 8)}
+                                                                    ...
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
 
-                                                    <td className="px-8 py-5">
-                                                        <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] uppercase font-black tracking-wider">
-                                                            {rack.divisi}
+                                                    <td className="px-8 py-6">
+                                                        <span className="inline-flex px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase border border-blue-100">
+                                                            {rack?.divisi || "-"}
                                                         </span>
                                                     </td>
 
-                                                    <td className="px-8 py-5">
-                                                        <div className="flex justify-center gap-3">
-                                                            <button
-                                                                disabled={
-                                                                    actionLoading ===
-                                                                    rack.id
+                                                    <td className="px-8 py-6">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <ActionButton
+                                                                loading={
+                                                                    actionLoading === rack?.id
                                                                 }
+                                                                variant="success"
+                                                                icon={<Check size={18} />}
                                                                 onClick={() =>
                                                                     handleStatusUpdate(
-                                                                        rack.id,
-                                                                        "approve",
+                                                                        rack?.id,
+                                                                        "approve"
                                                                     )
                                                                 }
-                                                                className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-90"
-                                                            >
-                                                                {actionLoading ===
-                                                                    rack.id ? (
-                                                                    <Loader2
-                                                                        className="animate-spin"
-                                                                        size={
-                                                                            18
-                                                                        }
-                                                                    />
-                                                                ) : (
-                                                                    <Check
-                                                                        size={18}
-                                                                    />
-                                                                )}
-                                                            </button>
+                                                            />
 
-                                                            <button
-                                                                disabled={
-                                                                    actionLoading ===
-                                                                    rack.id
+                                                            <ActionButton
+                                                                loading={
+                                                                    actionLoading === rack?.id
                                                                 }
+                                                                variant="danger"
+                                                                icon={<X size={18} />}
                                                                 onClick={() =>
                                                                     handleStatusUpdate(
-                                                                        rack.id,
-                                                                        "reject",
+                                                                        rack?.id,
+                                                                        "reject"
                                                                     )
                                                                 }
-                                                                className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-90"
-                                                            >
-                                                                <X
-                                                                    size={18}
-                                                                />
-                                                            </button>
+                                                            />
                                                         </div>
                                                     </td>
                                                 </motion.tr>
-                                            ),
-                                        )}
+                                            ))}
                                     </AnimatePresence>
                                 </tbody>
                             </table>
                         )}
                     </div>
                 </motion.div>
-
             </div>
         </div>
+    );
+}
+
+function InputField({
+    icon,
+    type = "text",
+    placeholder,
+    value,
+    onChange,
+}: any) {
+    return (
+        <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                {icon}
+            </div>
+
+            <input
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold placeholder:text-slate-300 placeholder:font-medium focus:ring-4 focus:ring-blue-500/10 focus:bg-white focus:border-blue-100 transition-all outline-none"
+            />
+        </div>
+    );
+}
+
+function ActionButton({
+    variant,
+    icon,
+    onClick,
+    loading,
+}: any) {
+    const theme =
+        variant === "success"
+            ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-500"
+            : "bg-rose-50 text-rose-600 hover:bg-rose-500";
+
+    return (
+        <button
+            disabled={loading}
+            onClick={onClick}
+            className={`p-2.5 rounded-xl transition-all active:scale-90 hover:text-white hover:shadow-lg disabled:opacity-40 ${theme}`}
+        >
+            {loading ? (
+                <Loader2 size={18} className="animate-spin" />
+            ) : (
+                icon
+            )}
+        </button>
     );
 }
