@@ -275,12 +275,6 @@ export default function DashboardPage() {
                       >
                         <Eye size={14} /> Preview
                       </button>
-                      <button
-                        onClick={() => window.open(d.fileUrl, "_blank")}
-                        className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors"
-                      >
-                        <Download size={14} />
-                      </button>
                     </div>
                   </motion.div>
                 ))}
