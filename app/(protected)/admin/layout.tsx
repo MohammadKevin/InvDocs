@@ -42,8 +42,7 @@ export default function AdminRackLayout({ children }: { children: React.ReactNod
                <img src="/icon.png" alt="Logo" className="w-7 h-7 object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tighter text-slate-800 leading-none uppercase">Raknesia</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Admin Station</span>
+              <span className="text-lg font-black tracking-tighter text-slate-800 leading-none uppercase">PT. Gudang Baru Berkah</span>
             </div>
           </div>
         </div>

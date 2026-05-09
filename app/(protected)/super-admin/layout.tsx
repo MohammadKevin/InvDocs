@@ -43,8 +43,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
               <img src="/icon.png" alt="Logo" className="w-7 h-7 object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-sm tracking-tighter text-slate-800 leading-none uppercase">Raknesia</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Network Master</span>
+              <span className="font-black text-sm tracking-tighter text-slate-800 leading-none uppercase">PT. Gudang Baru Berkah</span>
             </div>
           </div>
         </div>
