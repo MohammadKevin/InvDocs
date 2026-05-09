@@ -75,7 +75,7 @@ export default function ApprovalsPage() {
             {/* EXCLUSIVE HEADER */}
             <header className="bg-white p-10 rounded-[3rem] border border-slate-200/60 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-                
+
                 <div className="flex items-center gap-8 relative z-10">
                     <div className="w-20 h-20 bg-cyan-500 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-cyan-200">
                         <ShieldCheck size={40} strokeWidth={1.5} />
@@ -156,17 +156,22 @@ export default function ApprovalsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-10 py-6">
-                                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border tracking-widest ${
-                                                    doc.status === "approved" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                    doc.status === "rejected" ? "bg-rose-50 text-rose-600 border-rose-100" :
-                                                    "bg-amber-50 text-amber-600 border-amber-100"
-                                                }`}>
+                                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border tracking-widest ${doc.status === "approved" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                        doc.status === "rejected" ? "bg-rose-50 text-rose-600 border-rose-100" :
+                                                            "bg-amber-50 text-amber-600 border-amber-100"
+                                                    }`}>
                                                     {doc.status || "pending"}
                                                 </span>
                                             </td>
                                             <td className="px-10 py-6">
                                                 <div className="flex justify-center gap-2">
-                                                    <button onClick={() => setPreviewFile(doc) || setPreviewOpen(true)} className="h-11 w-11 flex items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-cyan-500 transition-all shadow-sm active:scale-90">
+                                                    <button
+                                                        onClick={() => {
+                                                            setPreviewFile(doc);
+                                                            setPreviewOpen(true);
+                                                        }}
+                                                        className="h-11 w-11 flex items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-cyan-500 transition-all shadow-sm active:scale-90"
+                                                    >
                                                         <Eye size={18} />
                                                     </button>
                                                     <button onClick={() => window.open(doc.fileUrl, '_blank')} className="h-11 w-11 flex items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 hover:bg-cyan-600 hover:text-white transition-all shadow-sm active:scale-90">
@@ -230,11 +235,10 @@ function AuthButton({ type, onClick, loading, disabled }: { type: "approve" | "r
         <button
             disabled={loading || disabled}
             onClick={onClick}
-            className={`h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-sm ${
-                isApprove 
-                ? "bg-slate-900 text-white hover:bg-emerald-600 disabled:opacity-20" 
-                : "bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 disabled:opacity-20"
-            }`}
+            className={`h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-sm ${isApprove
+                    ? "bg-slate-900 text-white hover:bg-emerald-600 disabled:opacity-20"
+                    : "bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 disabled:opacity-20"
+                }`}
         >
             {loading ? <Loader2 size={14} className="animate-spin" /> : isApprove ? <Check size={14} /> : <X size={14} />}
             {type}
