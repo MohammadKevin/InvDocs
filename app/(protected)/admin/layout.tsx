@@ -11,12 +11,18 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Shapes,
   Moon,
   Sun,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { api } from "@/lib/api";
+
+type Rack = {
+  id: string;
+  name_rack: string;
+  divisi: string;
+};
 
 const menuItems = [
   {
@@ -45,15 +51,33 @@ export default function AdminRackLayout({
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const [rack, setRack] = useState<Rack | null>(null);
 
   const { theme, setTheme } = useTheme();
 
-  // FIX HYDRATION
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     setMounted(true);
+    fetchRack();
   }, []);
+
+  async function fetchRack() {
+    try {
+      const res = await api.get("/rack/my");
+
+      const data = res.data?.data || res.data;
+
+      // kalau array ambil pertama
+      if (Array.isArray(data)) {
+        setRack(data[0] || null);
+      } else {
+        setRack(data);
+      }
+    } catch (error) {
+      console.error("Fetch rack error:", error);
+    }
+  }
 
   const handleLogout = () => {
     localStorage.clear();
@@ -64,11 +88,11 @@ export default function AdminRackLayout({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-white flex transition-colors duration-300">
       {/* SIDEBAR DESKTOP */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 sticky top-0 h-screen z-50 transition-colors duration-300">
+      <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 sticky top-0 h-screen z-50">
         {/* LOGO */}
         <div className="p-8">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-cyan-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-cyan-100 dark:shadow-cyan-950 transition-transform hover:rotate-12 overflow-hidden">
+            <div className="w-11 h-11 bg-cyan-500 rounded-2xl flex items-center justify-center text-white overflow-hidden">
               <img
                 src="/icon.png"
                 alt="Logo"
@@ -77,11 +101,11 @@ export default function AdminRackLayout({
             </div>
 
             <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tighter text-slate-800 dark:text-white leading-none uppercase">
+              <span className="text-lg font-black tracking-tighter uppercase">
                 PT. Gudang Baru Berkah
               </span>
 
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mt-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">
                 Inventory System
               </span>
             </div>
@@ -98,16 +122,7 @@ export default function AdminRackLayout({
                 <motion.div
                   whileHover={{ x: 5 }}
                   className={`
-                    relative
-                    flex
-                    items-center
-                    gap-3
-                    px-5
-                    py-3.5
-                    rounded-2xl
-                    text-sm
-                    font-bold
-                    transition-all
+                    relative flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold transition-all
                     ${
                       isActive
                         ? "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
@@ -122,11 +137,7 @@ export default function AdminRackLayout({
                     />
                   )}
 
-                  <item.icon
-                    size={20}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-
+                  <item.icon size={20} />
                   {item.name}
                 </motion.div>
               </Link>
@@ -146,118 +157,15 @@ export default function AdminRackLayout({
         </div>
       </aside>
 
-      {/* MOBILE SIDEBAR */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* OVERLAY */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
-            />
-
-            {/* DRAWER */}
-            <motion.aside
-              initial={{ x: -320 }}
-              animate={{ x: 0 }}
-              exit={{ x: -320 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 z-50 lg:hidden flex flex-col"
-            >
-              {/* HEADER */}
-              <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-cyan-500 rounded-2xl flex items-center justify-center overflow-hidden">
-                    <img
-                      src="/icon.png"
-                      alt="Logo"
-                      className="w-6 h-6 object-contain"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-black text-slate-800 dark:text-white uppercase">
-                      PT. Gudang
-                    </p>
-
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                      Inventory
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-500"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* MENU */}
-              <nav className="flex-1 p-4 space-y-2">
-                {menuItems.map((item) => {
-                  const isActive = pathname === item.href;
-
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <div
-                        className={`
-                          flex
-                          items-center
-                          gap-3
-                          px-5
-                          py-3.5
-                          rounded-2xl
-                          text-sm
-                          font-bold
-                          transition-all
-                          ${
-                            isActive
-                              ? "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
-                              : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900"
-                          }
-                        `}
-                      >
-                        <item.icon size={20} />
-                        {item.name}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* LOGOUT */}
-              <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-5 py-4 rounded-2xl text-sm font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
-                >
-                  <LogOut size={20} />
-                  Sign Out
-                </button>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
       {/* CONTENT */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* HEADER */}
-        <header className="sticky top-0 z-40 h-20 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8 transition-colors duration-300">
+        <header className="sticky top-0 z-40 h-20 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8">
           {/* LEFT */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsOpen(true)}
-              className="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300"
+              className="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900"
             >
               <Menu size={22} />
             </button>
@@ -269,11 +177,11 @@ export default function AdminRackLayout({
 
               <div>
                 <p className="text-sm font-black text-slate-800 dark:text-white">
-                  Rack Administration
+                  {rack?.name_rack || "Rack Administration"}
                 </p>
 
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
-                  Control Center
+                  {rack?.divisi || "Control Center"}
                 </p>
               </div>
             </div>
@@ -281,7 +189,7 @@ export default function AdminRackLayout({
 
           {/* RIGHT */}
           <div className="flex items-center gap-3">
-            {/* THEME BUTTON */}
+            {/* THEME */}
             <button
               onClick={() =>
                 setTheme(theme === "dark" ? "light" : "dark")
@@ -293,18 +201,14 @@ export default function AdminRackLayout({
               ) : theme === "dark" ? (
                 <Sun size={18} className="text-amber-400" />
               ) : (
-                <Moon
-                  size={18}
-                  className="text-slate-600 dark:text-slate-300"
-                />
+                <Moon size={18} />
               )}
             </button>
-
 
             {/* PROFILE */}
             <div className="flex items-center gap-4 pl-4 border-l border-slate-200 dark:border-slate-800">
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-black text-slate-800 dark:text-white leading-none mb-1">
+                <p className="text-sm font-black leading-none mb-1">
                   Admin Rack
                 </p>
 
@@ -313,7 +217,7 @@ export default function AdminRackLayout({
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-2xl border-2 border-cyan-500/20 p-0.5 shadow-sm">
+              <div className="w-11 h-11 rounded-2xl border-2 border-cyan-500/20 p-0.5">
                 <img
                   src="https://ui-avatars.com/api/?name=Admin+Rack&background=06b6d4&color=fff"
                   className="w-full h-full rounded-[14px] object-cover"
@@ -325,7 +229,7 @@ export default function AdminRackLayout({
         </header>
 
         {/* MAIN */}
-        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>
