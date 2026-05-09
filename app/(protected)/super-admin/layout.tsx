@@ -160,7 +160,7 @@ export default function SuperAdminLayout({
                 </p>
 
                 <p className="text-[9px] uppercase tracking-widest text-cyan-500 font-bold">
-                  Root Access
+                  PT. Gudang Baru Berkah
                 </p>
               </div>
 

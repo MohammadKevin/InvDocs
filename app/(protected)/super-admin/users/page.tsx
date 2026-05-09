@@ -16,14 +16,13 @@ import {
 } from "lucide-react";
 
 import { api } from "@/lib/api";
-import ThemeToggle from "@/components/ThemeToggle";
 
 interface User {
   id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  createdAt?: string;
 }
 
 export default function UsersPage() {
@@ -60,19 +59,29 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
-  const uniqueRoles = [...new Set(users.map((u) => u.role))].sort();
+  const uniqueRoles = [
+    ...new Set(
+      users
+        .map((u) => u.role)
+        .filter(Boolean)
+    ),
+  ].sort();
 
   const filteredUsers = users.filter((user) => {
     const q = searchTerm.toLowerCase();
 
+    const name = user.name?.toLowerCase() || "";
+    const email = user.email?.toLowerCase() || "";
+    const role = user.role?.toLowerCase() || "";
+
     const matchesSearch =
-      user.name.toLowerCase().includes(q) ||
-      user.email.toLowerCase().includes(q) ||
-      user.role.toLowerCase().includes(q);
+      name.includes(q) ||
+      email.includes(q) ||
+      role.includes(q);
 
     const matchesRole =
       roleFilter === "all" ||
-      user.role.toLowerCase() === roleFilter.toLowerCase();
+      role === roleFilter.toLowerCase();
 
     return matchesSearch && matchesRole;
   });
@@ -100,8 +109,8 @@ export default function UsersPage() {
         </div>
 
         <div className="flex items-center gap-3">
-
           <button
+            type="button"
             onClick={fetchUsers}
             className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 hover:text-cyan-600 hover:border-cyan-200 dark:hover:border-cyan-700 transition-all shadow-sm"
           >
@@ -130,11 +139,17 @@ export default function UsersPage() {
               placeholder="Search name, email, or role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                }
+              }}
               className="w-full pl-14 pr-10 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all shadow-sm"
             />
 
             {searchTerm && (
               <button
+                type="button"
                 onClick={() => setSearchTerm("")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 dark:hover:text-slate-200 transition-colors"
               >
@@ -154,7 +169,7 @@ export default function UsersPage() {
 
               {uniqueRoles.map((r) => (
                 <option key={r} value={r}>
-                  {r.replace(/_/g, " ")}
+                  {r?.replace(/_/g, " ")}
                 </option>
               ))}
             </select>
@@ -192,6 +207,7 @@ export default function UsersPage() {
               </p>
 
               <button
+                type="button"
                 onClick={fetchUsers}
                 className="text-[10px] bg-rose-50 dark:bg-rose-950/30 px-6 py-3 rounded-xl font-black uppercase tracking-widest border border-rose-100 dark:border-rose-900"
               >
@@ -223,17 +239,20 @@ export default function UsersPage() {
                         <td className="px-10 py-6">
                           <div className="flex items-center gap-5">
                             <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 border border-cyan-100 dark:border-cyan-900 flex items-center justify-center font-black group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
-                              {user.name.charAt(0).toUpperCase()}
+                              {(user.name || "?")
+                                .charAt(0)
+                                .toUpperCase()}
                             </div>
 
                             <div>
                               <p className="font-black text-slate-900 dark:text-white text-sm group-hover:text-cyan-600 transition-colors uppercase tracking-tight">
-                                {user.name}
+                                {user.name || "Unknown User"}
                               </p>
 
                               <div className="flex items-center gap-1.5 text-[11px] text-slate-400 lowercase font-bold mt-0.5">
                                 <Mail size={10} />
-                                {user.email}
+                                {user.email ||
+                                  "no-email@example.com"}
                               </div>
                             </div>
                           </div>
@@ -244,7 +263,7 @@ export default function UsersPage() {
                           <span
                             className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
                               user.role
-                                .toLowerCase()
+                                ?.toLowerCase()
                                 .includes("admin")
                                 ? "bg-cyan-50 dark:bg-cyan-950/20 text-cyan-700 dark:text-cyan-300 border-cyan-100 dark:border-cyan-900"
                                 : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-100 dark:border-slate-700"
@@ -255,7 +274,10 @@ export default function UsersPage() {
                               strokeWidth={2.5}
                             />
 
-                            {user.role.replace(/_/g, " ")}
+                            {(user.role || "unknown").replace(
+                              /_/g,
+                              " "
+                            )}
                           </span>
                         </td>
 
@@ -298,6 +320,7 @@ export default function UsersPage() {
                         {(searchTerm ||
                           roleFilter !== "all") && (
                           <button
+                            type="button"
                             onClick={() => {
                               setSearchTerm("");
                               setRoleFilter("all");
