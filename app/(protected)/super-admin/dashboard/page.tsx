@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, cloneElement } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
@@ -45,18 +45,17 @@ type FileDoc = {
   fileUrl: string;
   status?: string;
   boxId: string;
-  createdAt?: string;
 };
 
 /* ================= CARD ================= */
 
 function Card({
-  icon,
+  icon: Icon,
   title,
   subtitle,
   onClick,
 }: {
-  icon: React.ReactElement;
+  icon: React.ElementType;
   title: string;
   subtitle: string;
   onClick: () => void;
@@ -69,7 +68,7 @@ function Card({
       className="group p-7 bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col gap-5 hover:border-blue-200 hover:shadow-xl transition-all"
     >
       <div className="p-4 bg-slate-50 rounded-2xl group-hover:bg-blue-600 text-slate-400 group-hover:text-white transition-all">
-        {cloneElement(icon, { size: 28 })}
+        <Icon size={28} />
       </div>
 
       <div>
@@ -99,6 +98,7 @@ export default function DashboardPage() {
   const [activeRack, setActiveRack] = useState<Rack | null>(null);
   const [activeBox, setActiveBox] = useState<Box | null>(null);
 
+  // 🔥 FIX TYPE DI SINI (JANGAN BIAR INFER = never[])
   const [allRacks, setAllRacks] = useState<Rack[]>([]);
   const [divisions, setDivisions] = useState<string[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
       setAllRacks(data);
 
-      setDivisions([...new Set(data.map((r) => r.divisi))]);
+      setDivisions(Array.from(new Set(data.map((r) => r.divisi))));
     } finally {
       setLoading(false);
     }
@@ -159,12 +159,10 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* HEADER */}
       <header className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-black flex items-center gap-3">
-            <LayoutGrid className="text-blue-600" />
-            Archive System
-          </h1>
-        </div>
+        <h1 className="text-3xl font-black flex items-center gap-3">
+          <LayoutGrid className="text-blue-600" />
+          Archive System
+        </h1>
 
         <div className="relative">
           <Search className="absolute left-3 top-3 text-slate-400" />
@@ -188,7 +186,7 @@ export default function DashboardPage() {
             divisions.map((div) => (
               <Card
                 key={div}
-                icon={<Building2 />}
+                icon={Building2}
                 title={div}
                 subtitle="Division"
                 onClick={() => openDivision(div)}
@@ -202,7 +200,7 @@ export default function DashboardPage() {
               .map((r) => (
                 <Card
                   key={r.id}
-                  icon={<Server />}
+                  icon={Server}
                   title={r.name_rack}
                   subtitle={r.status || "-"}
                   onClick={() => openRack(r)}
@@ -214,7 +212,7 @@ export default function DashboardPage() {
             boxes.map((b) => (
               <Card
                 key={b.id}
-                icon={<Archive />}
+                icon={Archive}
                 title={b.name_box}
                 subtitle={b.kode_box || "-"}
                 onClick={() => openBox(b)}
@@ -246,7 +244,6 @@ export default function DashboardPage() {
               <button onClick={() => setPreviewFile(null)}>
                 <X />
               </button>
-
               <iframe src={previewFile.fileUrl} className="w-full h-full" />
             </div>
           </motion.div>
