@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
     Plus,
     Check,
@@ -11,15 +12,13 @@ import {
     User,
     Mail,
     Shield,
-    Layout,
     Briefcase,
     Zap,
     ShieldCheck,
-    Moon,
-    Sun,
 } from "lucide-react";
 
 import { useTheme } from "next-themes";
+
 import { api } from "@/lib/api";
 
 enum Divisi {
@@ -43,7 +42,6 @@ export default function RacksPage() {
         name: "",
         email: "",
         password: "",
-        name_rack: "",
         divisi: Divisi.IT,
     });
 
@@ -72,7 +70,7 @@ export default function RacksPage() {
                     r &&
                     typeof r === "object" &&
                     r.id &&
-                    r.name_rack
+                    r.kode_rack
             );
 
             setRacks(clean);
@@ -92,8 +90,7 @@ export default function RacksPage() {
         if (
             !form.name ||
             !form.email ||
-            !form.password ||
-            !form.name_rack
+            !form.password
         ) {
             return alert("Harap isi semua field!");
         }
@@ -118,7 +115,6 @@ export default function RacksPage() {
                 name: "",
                 email: "",
                 password: "",
-                name_rack: "",
                 divisi: Divisi.IT,
             });
 
@@ -157,7 +153,6 @@ export default function RacksPage() {
 
     return (
         <div className="space-y-10">
-            {/* HEADER */}
             <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-black text-[10px] uppercase tracking-[0.3em]">
@@ -177,7 +172,6 @@ export default function RacksPage() {
             </header>
 
             <div className="grid lg:grid-cols-12 gap-8 items-start">
-                {/* FORM */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -225,18 +219,6 @@ export default function RacksPage() {
                             value={form.password}
                             onChange={(v: string) =>
                                 setForm({ ...form, password: v })
-                            }
-                        />
-
-                        <InputField
-                            icon={<Layout size={18} />}
-                            placeholder="Rack Name"
-                            value={form.name_rack}
-                            onChange={(v: string) =>
-                                setForm({
-                                    ...form,
-                                    name_rack: v,
-                                })
                             }
                         />
 
@@ -288,7 +270,6 @@ export default function RacksPage() {
                     </form>
                 </motion.div>
 
-                {/* TABLE */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -367,7 +348,7 @@ export default function RacksPage() {
 
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-slate-900 dark:text-white text-base uppercase tracking-tight italic">
-                                                                {rack.name_rack}
+                                                                {rack.kode_rack}
                                                             </span>
 
                                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">

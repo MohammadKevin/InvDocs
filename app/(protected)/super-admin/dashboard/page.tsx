@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
   Server,
   Archive,
@@ -21,21 +22,19 @@ import {
 } from "lucide-react";
 
 import { api } from "@/lib/api";
-import ThemeToggle from "@/components/ThemeToggle";
 
 type View = "divisions" | "racks" | "boxes" | "files";
 
 type Rack = {
   id: string;
-  name_rack: string;
+  kode_rack: string;
   divisi: string;
   status?: string;
 };
 
 type Box = {
   id: string;
-  name_box: string;
-  kode_box?: string;
+  kode_box: string;
   rackId: string;
 };
 
@@ -45,6 +44,7 @@ type FileDoc = {
   fileUrl: string;
   status?: string;
   boxId: string;
+  createdAt?: string;
 };
 
 function Card({
@@ -65,10 +65,10 @@ function Card({
       whileHover={{ y: -5, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group relative p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col gap-4 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left w-full"
+      className="group relative p-6 bg-white dark:bg-[#081028] rounded-3xl border border-slate-200 dark:border-cyan-500/10 shadow-sm flex flex-col gap-4 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left w-full"
     >
       <div className="flex justify-between items-start">
-        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+        <div className="p-3 bg-slate-50 dark:bg-cyan-500/10 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
           <Icon size={24} />
         </div>
 
@@ -126,7 +126,6 @@ function handleDownload(fileUrl: string, fileName: string) {
   link.href = fileUrl;
   link.download = fileName;
   link.target = "_blank";
-  link.rel = "noopener noreferrer";
 
   document.body.appendChild(link);
 
@@ -136,20 +135,38 @@ function handleDownload(fileUrl: string, fileName: string) {
 }
 
 export default function DashboardPage() {
-  const [view, setView] = useState<View>("divisions");
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [view, setView] =
+    useState<View>("divisions");
 
-  const [activeDivision, setActiveDivision] = useState<string | null>(null);
-  const [activeRack, setActiveRack] = useState<Rack | null>(null);
-  const [activeBox, setActiveBox] = useState<Box | null>(null);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [allRacks, setAllRacks] = useState<Rack[]>([]);
-  const [divisions, setDivisions] = useState<string[]>([]);
-  const [boxes, setBoxes] = useState<Box[]>([]);
-  const [documents, setDocuments] = useState<FileDoc[]>([]);
+  const [searchTerm, setSearchTerm] =
+    useState("");
 
-  const [previewFile, setPreviewFile] = useState<FileDoc | null>(null);
+  const [activeDivision, setActiveDivision] =
+    useState<string | null>(null);
+
+  const [activeRack, setActiveRack] =
+    useState<Rack | null>(null);
+
+  const [activeBox, setActiveBox] =
+    useState<Box | null>(null);
+
+  const [allRacks, setAllRacks] =
+    useState<Rack[]>([]);
+
+  const [divisions, setDivisions] =
+    useState<string[]>([]);
+
+  const [boxes, setBoxes] =
+    useState<Box[]>([]);
+
+  const [documents, setDocuments] =
+    useState<FileDoc[]>([]);
+
+  const [previewFile, setPreviewFile] =
+    useState<FileDoc | null>(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -161,11 +178,16 @@ export default function DashboardPage() {
 
       const res = await api.get("/rack");
 
-      const data: Rack[] = res.data?.data || res.data || [];
+      const data: Rack[] =
+        res.data?.data || res.data || [];
 
       setAllRacks(data);
 
-      setDivisions(Array.from(new Set(data.map((r) => r.divisi))));
+      setDivisions(
+        Array.from(
+          new Set(data.map((r) => r.divisi))
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -175,28 +197,36 @@ export default function DashboardPage() {
     setSearchTerm("");
 
     if (view === "files") setView("boxes");
-    else if (view === "boxes") setView("racks");
-    else if (view === "racks") setView("divisions");
+    else if (view === "boxes")
+      setView("racks");
+    else if (view === "racks")
+      setView("divisions");
   };
 
   const openDivision = (div: string) => {
     setSearchTerm("");
+
     setActiveDivision(div);
+
     setView("racks");
   };
 
   const openRack = async (rack: Rack) => {
     setSearchTerm("");
+
     setActiveRack(rack);
 
     setLoading(true);
 
     try {
-      const res = await api.get("/boxes");
+      const res = await api.get(
+        `/boxes/rack/${rack.id}`
+      );
 
-      const data: Box[] = res.data?.data || res.data || [];
+      const data: Box[] =
+        res.data?.data || res.data || [];
 
-      setBoxes(data.filter((b) => b.rackId === rack.id));
+      setBoxes(data);
 
       setView("boxes");
     } finally {
@@ -206,16 +236,24 @@ export default function DashboardPage() {
 
   const openBox = async (box: Box) => {
     setSearchTerm("");
+
     setActiveBox(box);
 
     setLoading(true);
 
     try {
-      const res = await api.get("/documents");
+      const res = await api.get(
+        "/documents"
+      );
 
-      const data: FileDoc[] = res.data?.data || res.data || [];
+      const data: FileDoc[] =
+        res.data?.data || res.data || [];
 
-      setDocuments(data.filter((d) => d.boxId === box.id));
+      setDocuments(
+        data.filter(
+          (d) => d.boxId === box.id
+        )
+      );
 
       setView("files");
     } finally {
@@ -224,7 +262,8 @@ export default function DashboardPage() {
   };
 
   const filteredItems = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim();
+    const term =
+      searchTerm.toLowerCase().trim();
 
     if (view === "divisions") {
       return divisions.filter((d) =>
@@ -236,19 +275,25 @@ export default function DashboardPage() {
       return allRacks.filter(
         (r) =>
           r.divisi === activeDivision &&
-          r.name_rack.toLowerCase().includes(term)
+          r.kode_rack
+            ?.toLowerCase()
+            .includes(term)
       );
     }
 
     if (view === "boxes") {
       return boxes.filter((b) =>
-        b.name_box.toLowerCase().includes(term)
+        b.kode_box
+          ?.toLowerCase()
+          .includes(term)
       );
     }
 
     if (view === "files") {
       return documents.filter((d) =>
-        d.title.toLowerCase().includes(term)
+        d.title
+          ?.toLowerCase()
+          .includes(term)
       );
     }
 
@@ -264,52 +309,56 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10 text-slate-900 dark:text-white transition-colors">
-
-      {/* HEADER */}
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm">
+          <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
             <LayoutGrid size={16} />
-            <span>Digital Archive v1.0</span>
+            <span>Digital Archive</span>
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight">
-            {view === "divisions" && "Explore Library"}
-            {view === "racks" && activeDivision}
-            {view === "boxes" && activeRack?.name_rack}
-            {view === "files" && activeBox?.name_box}
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+            {view === "divisions" &&
+              "Explore Library"}
+
+            {view === "racks" &&
+              activeDivision}
+
+            {view === "boxes" &&
+              activeRack?.kode_rack}
+
+            {view === "files" &&
+              activeBox?.kode_box}
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative group w-full md:w-64">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"
-              size={18}
-            />
+        <div className="relative group w-full md:w-72">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={18}
+          />
 
-            <input
-              className="pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 dark:text-white border-none rounded-2xl w-full focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none text-sm"
-              placeholder={`Search in ${view}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <input
+            className="pl-10 pr-4 py-3 bg-white dark:bg-[#081028] dark:text-white border border-slate-200 dark:border-cyan-500/10 rounded-2xl w-full outline-none text-sm"
+            placeholder={`Search in ${view}...`}
+            value={searchTerm}
+            onChange={(e) =>
+              setSearchTerm(e.target.value)
+            }
+          />
         </div>
       </header>
 
-      <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <nav className="flex items-center gap-2 overflow-x-auto">
         <button
           onClick={() => {
             setView("divisions");
             setSearchTerm("");
           }}
-          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             view === "divisions"
-              ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
+              ? "bg-cyan-500 text-white"
+              : "bg-white dark:bg-[#081028] text-slate-500"
           }`}
         >
           <Home size={16} />
@@ -320,12 +369,12 @@ export default function DashboardPage() {
           <>
             <ChevronRight
               size={16}
-              className="text-slate-300 flex-shrink-0"
+              className="text-slate-300"
             />
 
             <button
               onClick={handleBack}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-bold hover:bg-slate-700 transition-all shadow-md"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold"
             >
               <ArrowLeft size={16} />
               Back
@@ -334,11 +383,10 @@ export default function DashboardPage() {
         )}
       </nav>
 
-      {/* CONTENT */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 space-y-4">
           <Loader2
-            className="animate-spin text-blue-600"
+            className="animate-spin text-cyan-400"
             size={48}
           />
 
@@ -350,10 +398,14 @@ export default function DashboardPage() {
         <div className="min-h-[400px]">
           {filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
-              <FileSearch size={64} strokeWidth={1} />
+              <FileSearch
+                size={64}
+                strokeWidth={1}
+              />
 
               <p className="font-medium text-center">
-                No results found for "{searchTerm}"
+                No results found for "
+                {searchTerm}"
               </p>
             </div>
           ) : (
@@ -362,62 +414,89 @@ export default function DashboardPage() {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               <AnimatePresence mode="popLayout">
-
                 {view === "divisions" &&
-                  (filteredItems as string[]).map((div) => (
+                  (
+                    filteredItems as string[]
+                  ).map((div) => (
                     <Card
                       key={div}
                       icon={Building2}
                       title={div}
                       subtitle="Division"
-                      onClick={() => openDivision(div)}
+                      onClick={() =>
+                        openDivision(div)
+                      }
                     />
                   ))}
 
                 {view === "racks" &&
-                  (filteredItems as Rack[]).map((r) => (
+                  (
+                    filteredItems as Rack[]
+                  ).map((r) => (
                     <Card
                       key={r.id}
                       icon={Server}
-                      title={r.name_rack}
-                      subtitle={r.status || "Active Rack"}
-                      onClick={() => openRack(r)}
+                      title={r.kode_rack}
+                      subtitle={
+                        r.status ||
+                        "Active Rack"
+                      }
+                      onClick={() =>
+                        openRack(r)
+                      }
                     />
                   ))}
 
                 {view === "boxes" &&
-                  (filteredItems as Box[]).map((b) => (
+                  (
+                    filteredItems as Box[]
+                  ).map((b) => (
                     <Card
                       key={b.id}
                       icon={Archive}
-                      title={b.name_box}
-                      subtitle={b.kode_box || "Archive Box"}
-                      onClick={() => openBox(b)}
+                      title={b.kode_box}
+                      subtitle="Archive Box"
+                      onClick={() =>
+                        openBox(b)
+                      }
                     />
                   ))}
 
                 {view === "files" &&
-                  (filteredItems as FileDoc[]).map((d) => (
+                  (
+                    filteredItems as FileDoc[]
+                  ).map((d) => (
                     <motion.div
                       key={d.id}
                       layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="group p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all flex flex-col h-full"
+                      initial={{
+                        opacity: 0,
+                        scale: 0.9,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        scale: 0.9,
+                      }}
+                      className="group p-6 bg-white dark:bg-[#081028] rounded-3xl border border-slate-200 dark:border-cyan-500/10 shadow-sm flex flex-col h-full"
                     >
-                      <div className="p-3 bg-blue-50 dark:bg-slate-800 text-blue-600 rounded-2xl w-fit mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-2xl w-fit mb-4">
                         <FileText size={24} />
                       </div>
 
-                      <h3 className="font-bold mb-6 line-clamp-2 flex-grow">
+                      <h3 className="font-bold mb-6 line-clamp-2 flex-grow text-slate-900 dark:text-white">
                         {d.title}
                       </h3>
 
                       <div className="flex gap-2 mt-auto">
                         <button
-                          onClick={() => setPreviewFile(d)}
-                          className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors"
+                          onClick={() =>
+                            setPreviewFile(d)
+                          }
+                          className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold"
                         >
                           <Eye size={14} />
                           Preview
@@ -425,9 +504,12 @@ export default function DashboardPage() {
 
                         <button
                           onClick={() =>
-                            handleDownload(d.fileUrl, d.title)
+                            handleDownload(
+                              d.fileUrl,
+                              d.title
+                            )
                           }
-                          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 bg-cyan-500 text-white py-2.5 rounded-xl text-xs font-bold"
                         >
                           <Download size={14} />
                           Download
@@ -441,7 +523,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* MODAL */}
       <AnimatePresence>
         {previewFile && (
           <motion.div
@@ -451,25 +532,32 @@ export default function DashboardPage() {
             className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[90vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl"
+              initial={{
+                scale: 0.9,
+                opacity: 0,
+              }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+              }}
+              exit={{
+                scale: 0.9,
+                opacity: 0,
+              }}
+              className="bg-white dark:bg-[#081028] w-full max-w-6xl h-[90vh] rounded-[2rem] overflow-hidden flex flex-col"
             >
-              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 bg-blue-50 dark:bg-slate-800 text-blue-600 rounded-lg flex-shrink-0">
+              <div className="p-4 border-b border-slate-200 dark:border-cyan-500/10 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg">
                     <FileText size={18} />
                   </div>
 
-                  <span className="font-bold truncate max-w-[200px] md:max-w-md">
+                  <span className="font-bold truncate max-w-[200px] md:max-w-md text-slate-900 dark:text-white">
                     {previewFile.title}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() =>
                       handleDownload(
@@ -477,17 +565,17 @@ export default function DashboardPage() {
                         previewFile.title
                       )
                     }
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-xl text-sm font-bold"
                   >
                     <Download size={16} />
-                    <span className="hidden sm:inline">
-                      Download
-                    </span>
+                    Download
                   </button>
 
                   <button
-                    onClick={() => setPreviewFile(null)}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                    onClick={() =>
+                      setPreviewFile(null)
+                    }
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
                   >
                     <X size={20} />
                   </button>
@@ -495,7 +583,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex-1 bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-auto">
-                {isImage(previewFile.fileUrl) ? (
+                {isImage(
+                  previewFile.fileUrl
+                ) ? (
                   <img
                     src={previewFile.fileUrl}
                     alt={previewFile.title}
@@ -503,7 +593,9 @@ export default function DashboardPage() {
                   />
                 ) : (
                   <iframe
-                    src={getPreviewUrl(previewFile.fileUrl)}
+                    src={getPreviewUrl(
+                      previewFile.fileUrl
+                    )}
                     className="w-full h-full border-none"
                     title="Document Preview"
                   />

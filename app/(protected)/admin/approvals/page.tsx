@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
     Check,
     X,
@@ -13,7 +14,9 @@ import {
     ShieldCheck,
     Eye,
     Download,
+    Box,
 } from "lucide-react";
+
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -24,12 +27,13 @@ interface DocumentItem {
     status?: string;
 
     user?: {
+        name?: string;
         fullname?: string;
         fullName?: string;
     };
 
     box?: {
-        name_box?: string;
+        kode_box?: string;
         rackId?: string;
     };
 }
@@ -104,9 +108,10 @@ export default function ApprovalsPage() {
             await api.patch(endpoint);
 
             toast.success(
-                `Dokumen berhasil ${action === "approve"
-                    ? "disetujui"
-                    : "ditolak"
+                `Dokumen berhasil ${
+                    action === "approve"
+                        ? "disetujui"
+                        : "ditolak"
                 }`
             );
 
@@ -114,7 +119,7 @@ export default function ApprovalsPage() {
         } catch (err: any) {
             toast.error(
                 err?.response?.data?.message ||
-                "Operasi gagal"
+                    "Operasi gagal"
             );
         } finally {
             setActionLoading(null);
@@ -126,21 +131,27 @@ export default function ApprovalsPage() {
             doc.title?.toLowerCase() || "";
 
         const user = (
+            doc.user?.name ||
             doc.user?.fullname ||
             doc.user?.fullName ||
             ""
         ).toLowerCase();
 
+        const box =
+            doc.box?.kode_box?.toLowerCase() || "";
+
+        const term = search.toLowerCase();
+
         return (
-            title.includes(search.toLowerCase()) ||
-            user.includes(search.toLowerCase())
+            title.includes(term) ||
+            user.includes(term) ||
+            box.includes(term)
         );
     });
 
     return (
         <div className="space-y-10">
-            {/* HEADER */}
-            <header className="bg-white dark:bg-slate-950 p-10 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden transition-colors">
+            <header className="bg-white dark:bg-[#081028] p-10 rounded-[3rem] border border-slate-200/60 dark:border-cyan-500/10 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden transition-colors">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
                 <div className="flex items-center gap-8 relative z-10">
@@ -163,7 +174,6 @@ export default function ApprovalsPage() {
                     </div>
                 </div>
 
-                {/* SEARCH */}
                 <div className="relative group w-full lg:w-96 z-10">
                     <Search
                         className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-cyan-500 transition-colors"
@@ -175,14 +185,13 @@ export default function ApprovalsPage() {
                         onChange={(e) =>
                             setSearch(e.target.value)
                         }
-                        placeholder="Search by title or contributor..."
-                        className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 focus:bg-white dark:focus:bg-slate-950 focus:border-cyan-200 outline-none transition-all"
+                        placeholder="Search by title, user, or box..."
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 focus:bg-white dark:focus:bg-slate-950 focus:border-cyan-200 outline-none transition-all dark:text-white"
                     />
                 </div>
             </header>
 
-            {/* TABLE */}
-            <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+            <div className="bg-white dark:bg-[#081028] rounded-[3rem] border border-slate-200/60 dark:border-cyan-500/10 shadow-sm overflow-hidden transition-colors">
                 {loading ? (
                     <div className="py-40 flex flex-col items-center justify-center space-y-4">
                         <div className="relative">
@@ -201,7 +210,7 @@ export default function ApprovalsPage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 uppercase tracking-widest text-[10px] font-black border-b border-slate-100 dark:border-slate-800">
+                            <thead className="bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 uppercase tracking-widest text-[10px] font-black border-b border-slate-100 dark:border-cyan-500/10">
                                 <tr>
                                     <th className="px-10 py-6">
                                         Resource
@@ -247,10 +256,9 @@ export default function ApprovalsPage() {
                                                 key={doc.id}
                                                 className="hover:bg-cyan-50/20 dark:hover:bg-cyan-500/5 transition-colors group"
                                             >
-                                                {/* RESOURCE */}
                                                 <td className="px-10 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="p-3 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 rounded-xl group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                                                        <div className="p-3 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-xl group-hover:bg-cyan-500 group-hover:text-white transition-all">
                                                             <FileText
                                                                 size={20}
                                                             />
@@ -262,7 +270,6 @@ export default function ApprovalsPage() {
                                                     </div>
                                                 </td>
 
-                                                {/* USER */}
                                                 <td className="px-10 py-6">
                                                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold text-xs italic">
                                                         <User
@@ -271,45 +278,45 @@ export default function ApprovalsPage() {
                                                         />
 
                                                         {doc.user
-                                                            ?.fullname ||
+                                                            ?.name ||
+                                                            doc.user
+                                                                ?.fullname ||
                                                             doc.user
                                                                 ?.fullName ||
                                                             "-"}
                                                     </div>
                                                 </td>
 
-                                                {/* BOX */}
                                                 <td className="px-10 py-6">
                                                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-tighter">
-                                                        <Archive
+                                                        <Box
                                                             size={14}
                                                             className="text-slate-300"
                                                         />
 
                                                         {doc.box
-                                                            ?.name_box ||
-                                                            "Unsorted"}
+                                                            ?.kode_box ||
+                                                            "UNSORTED"}
                                                     </div>
                                                 </td>
 
-                                                {/* STATUS */}
                                                 <td className="px-10 py-6">
                                                     <span
-                                                        className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border tracking-widest ${doc.status ===
-                                                                "approved"
+                                                        className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border tracking-widest ${
+                                                            doc.status ===
+                                                            "approved"
                                                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                                                                 : doc.status ===
-                                                                    "rejected"
-                                                                    ? "bg-rose-50 text-rose-600 border-rose-100"
-                                                                    : "bg-amber-50 text-amber-600 border-amber-100"
-                                                            }`}
+                                                                  "rejected"
+                                                                ? "bg-rose-50 text-rose-600 border-rose-100"
+                                                                : "bg-amber-50 text-amber-600 border-amber-100"
+                                                        }`}
                                                     >
                                                         {doc.status ||
                                                             "pending"}
                                                     </span>
                                                 </td>
 
-                                                {/* ACTION */}
                                                 <td className="px-10 py-6">
                                                     <div className="flex justify-center gap-2">
                                                         <button
@@ -334,7 +341,7 @@ export default function ApprovalsPage() {
                                                                     "_blank"
                                                                 )
                                                             }
-                                                            className="h-11 w-11 flex items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 hover:bg-cyan-600 hover:text-white transition-all shadow-sm active:scale-90"
+                                                            className="h-11 w-11 flex items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-600 hover:text-white transition-all shadow-sm active:scale-90"
                                                         >
                                                             <Download
                                                                 size={18}
@@ -343,7 +350,6 @@ export default function ApprovalsPage() {
                                                     </div>
                                                 </td>
 
-                                                {/* AUTH */}
                                                 <td className="px-10 py-6">
                                                     <div className="flex justify-center gap-3">
                                                         <AuthButton
@@ -410,7 +416,6 @@ export default function ApprovalsPage() {
                 )}
             </div>
 
-            {/* PREVIEW MODAL */}
             <AnimatePresence>
                 {previewOpen && previewFile && (
                     <motion.div
@@ -438,10 +443,9 @@ export default function ApprovalsPage() {
                                 scale: 0.9,
                                 y: 20,
                             }}
-                            className="w-full max-w-6xl h-[90vh] bg-white dark:bg-slate-950 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col"
+                            className="w-full max-w-6xl h-[90vh] bg-white dark:bg-[#081028] rounded-[3rem] overflow-hidden shadow-2xl flex flex-col"
                         >
-                            {/* HEADER */}
-                            <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-cyan-500/10">
                                 <div>
                                     <h2 className="font-black text-2xl text-slate-900 dark:text-white uppercase italic tracking-tighter">
                                         {previewFile.title}
@@ -463,7 +467,6 @@ export default function ApprovalsPage() {
                                 </button>
                             </div>
 
-                            {/* CONTENT */}
                             <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4">
                                 <iframe
                                     src={previewFile.fileUrl}
@@ -495,10 +498,11 @@ function AuthButton({
         <button
             disabled={loading || disabled}
             onClick={onClick}
-            className={`h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-sm ${isApprove
+            className={`h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-sm ${
+                isApprove
                     ? "bg-slate-900 dark:bg-cyan-600 text-white hover:bg-emerald-600 disabled:opacity-20"
                     : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-200 disabled:opacity-20"
-                }`}
+            }`}
         >
             {loading ? (
                 <Loader2

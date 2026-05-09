@@ -13,6 +13,7 @@ import {
   X,
   ShieldAlert,
   ChevronRight,
+  ClipboardCheck,
 } from "lucide-react";
 
 import ThemeToggle from "@/components/ThemeToggle";
@@ -34,9 +35,14 @@ const sidebarItems = [
     icon: Layers,
   },
   {
-    name: "Rack",
-    href: "/super-admin/racksn",
+    name: "Division Racks",
+    href: "/super-admin/divisi",
     icon: ShieldAlert,
+  },
+  {
+    name: "Reports",
+    href: "/super-admin/reports",
+    icon: ClipboardCheck,
   },
 ];
 

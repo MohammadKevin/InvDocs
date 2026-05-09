@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
     Archive,
     Plus,
@@ -13,20 +14,22 @@ import {
     X,
     Hash,
     Info,
+    Box as BoxIcon,
 } from "lucide-react";
+
 import { api } from "@/lib/api";
 
 interface Box {
     id: string;
-    name_box: string;
+    kode_box: string;
     description?: string;
-    code?: string;
     rackId: string;
     createdAt?: string;
 }
 
 interface Rack {
     id: string;
+    kode_rack: string;
 }
 
 export default function BoxesPage() {
@@ -40,7 +43,6 @@ export default function BoxesPage() {
     const [rackId, setRackId] = useState("");
 
     const [formData, setFormData] = useState({
-        name_box: "",
         description: "",
         rackId: "",
     });
@@ -55,7 +57,8 @@ export default function BoxesPage() {
 
             const rackRes = await api.get("/rack/my");
 
-            const racks: Rack[] = rackRes.data?.data || rackRes.data || [];
+            const racks: Rack[] =
+                rackRes.data?.data || rackRes.data || [];
 
             if (racks.length > 0) {
                 const firstId = racks[0].id;
@@ -70,7 +73,8 @@ export default function BoxesPage() {
 
             const boxRes = await api.get("/boxes");
 
-            const allBoxes: Box[] = boxRes.data?.data || boxRes.data || [];
+            const allBoxes: Box[] =
+                boxRes.data?.data || boxRes.data || [];
 
             const rackIds = racks.map((r) => r.id);
 
@@ -95,7 +99,6 @@ export default function BoxesPage() {
             setIsModalOpen(false);
 
             setFormData({
-                name_box: "",
                 description: "",
                 rackId,
             });
@@ -103,7 +106,8 @@ export default function BoxesPage() {
             fetchData();
         } catch (err: any) {
             alert(
-                err?.response?.data?.message || "Gagal membuat box"
+                err?.response?.data?.message ||
+                    "Gagal membuat box"
             );
         }
     }
@@ -124,16 +128,15 @@ export default function BoxesPage() {
         } catch (err: any) {
             alert(
                 err?.response?.data?.message ||
-                "Gagal menghapus box"
+                    "Gagal menghapus box"
             );
         }
     }
 
     const filteredBoxes = boxes.filter((box) =>
         [
-            box.name_box || "",
+            box.kode_box || "",
             box.description || "",
-            box.code || "",
         ].some((value) =>
             value
                 .toLowerCase()
@@ -143,14 +146,13 @@ export default function BoxesPage() {
 
     return (
         <div className="space-y-10">
-            {/* HEADER */}
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                 <div>
                     <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic">
                         Unit Inventory
                     </h1>
 
-                    <p className="text-cyan-600 font-bold text-sm tracking-widest mt-2 uppercase flex items-center gap-2">
+                    <p className="text-cyan-600 dark:text-cyan-400 font-bold text-sm tracking-widest mt-2 uppercase flex items-center gap-2">
                         <Info size={16} />
                         My Storage Management
                     </p>
@@ -158,17 +160,15 @@ export default function BoxesPage() {
 
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-3 bg-cyan-500 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-cyan-200 hover:bg-cyan-600 transition-all active:scale-95"
+                    className="flex items-center gap-3 bg-cyan-500 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-cyan-200/20 hover:bg-cyan-600 transition-all active:scale-95"
                 >
                     <Plus size={18} />
                     Provision New Box
                 </button>
             </header>
 
-            {/* TABLE */}
-            <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
-                {/* SEARCH */}
-                <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 bg-slate-50/40 dark:bg-slate-900/30">
+            <div className="bg-white dark:bg-[#081028] rounded-[3rem] border border-slate-100 dark:border-cyan-500/10 shadow-sm overflow-hidden transition-colors">
+                <div className="p-8 border-b border-slate-100 dark:border-cyan-500/10 flex items-center justify-between gap-4 bg-slate-50/40 dark:bg-slate-900/30">
                     <div className="relative group max-w-md w-full">
                         <Search
                             className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors"
@@ -176,8 +176,8 @@ export default function BoxesPage() {
                         />
 
                         <input
-                            className="w-full pl-14 pr-10 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all"
-                            placeholder="Search by name, code, or description..."
+                            className="w-full pl-14 pr-10 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all dark:text-white"
+                            placeholder="Search by code or description..."
                             value={searchTerm}
                             onChange={(e) =>
                                 setSearchTerm(e.target.value)
@@ -201,7 +201,6 @@ export default function BoxesPage() {
                     )}
                 </div>
 
-                {/* CONTENT */}
                 <div className="overflow-x-auto">
                     {loading ? (
                         <div className="py-40 flex flex-col items-center justify-center gap-4">
@@ -216,13 +215,13 @@ export default function BoxesPage() {
                         </div>
                     ) : (
                         <table className="w-full text-left">
-                            <thead className="bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 uppercase tracking-widest text-[10px] font-black border-b border-slate-100 dark:border-slate-800">
+                            <thead className="bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 uppercase tracking-widest text-[10px] font-black border-b border-slate-100 dark:border-cyan-500/10">
                                 <tr>
-                                    <th className="px-10 py-6">ID Serial</th>
-                                    <th className="px-10 py-6">Details</th>
-                                    <th className="px-10 py-6">Date</th>
+                                    <th className="px-10 py-6">BOX CODE</th>
+                                    <th className="px-10 py-6">DETAILS</th>
+                                    <th className="px-10 py-6">DATE</th>
                                     <th className="px-10 py-6 text-right">
-                                        Actions
+                                        ACTIONS
                                     </th>
                                 </tr>
                             </thead>
@@ -234,27 +233,25 @@ export default function BoxesPage() {
                                             key={box.id}
                                             className="hover:bg-cyan-50/30 dark:hover:bg-cyan-500/5 transition-colors group"
                                         >
-                                            {/* CODE */}
                                             <td className="px-10 py-7">
                                                 <span className="px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white rounded-xl font-black text-[10px]">
                                                     <Hash
                                                         size={12}
                                                         className="inline mr-1"
                                                     />
-                                                    {box.code || "-"}
+                                                    {box.kode_box}
                                                 </span>
                                             </td>
 
-                                            {/* DETAILS */}
                                             <td className="px-10 py-7">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0">
-                                                        <Archive size={24} />
+                                                    <div className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                                                        <BoxIcon size={24} />
                                                     </div>
 
                                                     <div>
                                                         <p className="font-black text-slate-900 dark:text-white text-lg">
-                                                            {box.name_box}
+                                                            {box.kode_box}
                                                         </p>
 
                                                         <p className="text-xs text-slate-400 font-medium line-clamp-2 mt-1">
@@ -265,7 +262,6 @@ export default function BoxesPage() {
                                                 </div>
                                             </td>
 
-                                            {/* DATE */}
                                             <td className="px-10 py-7 text-xs font-bold text-slate-400 whitespace-nowrap">
                                                 <Calendar
                                                     size={14}
@@ -274,12 +270,11 @@ export default function BoxesPage() {
 
                                                 {box.createdAt
                                                     ? new Date(
-                                                        box.createdAt
-                                                    ).toLocaleDateString()
+                                                          box.createdAt
+                                                      ).toLocaleDateString()
                                                     : "-"}
                                             </td>
 
-                                            {/* ACTIONS */}
                                             <td className="px-10 py-7">
                                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 hover:text-cyan-600 hover:border-cyan-100 transition-all">
@@ -331,7 +326,6 @@ export default function BoxesPage() {
                 </div>
             </div>
 
-            {/* MODAL */}
             <AnimatePresence>
                 {isModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
@@ -348,7 +342,7 @@ export default function BoxesPage() {
                                 scale: 0.9,
                                 opacity: 0,
                             }}
-                            className="bg-white dark:bg-slate-950 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl relative border border-slate-100 dark:border-slate-800"
+                            className="bg-white dark:bg-[#081028] w-full max-w-lg rounded-[3rem] p-12 shadow-2xl relative border border-slate-100 dark:border-cyan-500/10"
                         >
                             <button
                                 onClick={() =>
@@ -371,27 +365,6 @@ export default function BoxesPage() {
                                 onSubmit={handleCreate}
                                 className="space-y-8"
                             >
-                                {/* NAME */}
-                                <div className="space-y-3">
-                                    <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">
-                                        Identifier Name
-                                    </label>
-
-                                    <input
-                                        required
-                                        value={formData.name_box}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                name_box: e.target.value,
-                                            })
-                                        }
-                                        className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white dark:focus:bg-slate-950 outline-none transition-all"
-                                        placeholder="e.g. Finance-2026-A"
-                                    />
-                                </div>
-
-                                {/* DESCRIPTION */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">
                                         Specification
@@ -406,12 +379,11 @@ export default function BoxesPage() {
                                                     e.target.value,
                                             })
                                         }
-                                        className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white dark:focus:bg-slate-950 outline-none transition-all h-32 resize-none"
+                                        className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white dark:focus:bg-slate-950 outline-none transition-all h-32 resize-none dark:text-white"
                                         placeholder="Describe the physical documents..."
                                     />
                                 </div>
 
-                                {/* BUTTON */}
                                 <button className="w-full py-6 bg-slate-900 dark:bg-cyan-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl hover:bg-cyan-600 dark:hover:bg-cyan-500 transition-all">
                                     Authorize Registration
                                 </button>

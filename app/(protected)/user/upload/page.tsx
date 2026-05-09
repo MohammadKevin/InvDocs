@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+
 import {
   UploadCloud,
   Loader2,
@@ -15,33 +16,54 @@ import { api } from "@/lib/api";
 
 interface Rack {
   id: string;
-  name_rack: string;
+  kode_rack: string;
   divisi: string;
 }
 
 interface Box {
   id: string;
-  name_box: string;
+  kode_box: string;
   rackId: string;
 }
 
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [file, setFile] =
+    useState<File | null>(null);
 
-  const [divisions, setDivisions] = useState<string[]>([]);
-  const [racks, setRacks] = useState<Rack[]>([]);
-  const [boxes, setBoxes] = useState<Box[]>([]);
+  const [title, setTitle] =
+    useState("");
 
-  const [division, setDivision] = useState("");
-  const [rackId, setRackId] = useState("");
-  const [boxId, setBoxId] = useState("");
+  const [description, setDescription] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [divisions, setDivisions] =
+    useState<string[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [racks, setRacks] = useState<
+    Rack[]
+  >([]);
+
+  const [boxes, setBoxes] = useState<
+    Box[]
+  >([]);
+
+  const [division, setDivision] =
+    useState("");
+
+  const [rackId, setRackId] =
+    useState("");
+
+  const [boxId, setBoxId] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [isDragging, setIsDragging] =
+    useState(false);
+
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchInit();
@@ -49,14 +71,22 @@ export default function UploadPage() {
 
   async function fetchInit() {
     try {
-      const res = await api.get("/rack/divisi");
+      const res =
+        await api.get("/rack/divisi");
 
       const data: Rack[] =
-        Array.isArray(res.data) ? res.data : res.data?.data || [];
+        Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
 
       setRacks(data);
 
-      const uniqueDiv = [...new Set(data.map((r) => r.divisi))];
+      const uniqueDiv = [
+        ...new Set(
+          data.map((r) => r.divisi)
+        ),
+      ];
+
       setDivisions(uniqueDiv);
     } catch (err) {
       setRacks([]);
@@ -64,19 +94,32 @@ export default function UploadPage() {
     }
   }
 
-  const filteredRacks = racks.filter((r) => r.divisi === division);
+  const filteredRacks =
+    racks.filter(
+      (r) => r.divisi === division
+    );
 
-  async function handleRackChange(id: string) {
+  async function handleRackChange(
+    id: string
+  ) {
     setRackId(id);
+
     setBoxId("");
 
     try {
-      const res = await api.get("/boxes");
+      const res =
+        await api.get("/boxes");
 
       const data: Box[] =
-        Array.isArray(res.data) ? res.data : res.data?.data || [];
+        Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
 
-      setBoxes(data.filter((b) => b.rackId === id));
+      setBoxes(
+        data.filter(
+          (b) => b.rackId === id
+        )
+      );
     } catch (err) {
       setBoxes([]);
     }
@@ -84,36 +127,69 @@ export default function UploadPage() {
 
   async function handleUpload() {
     if (!file || !title || !boxId) {
-      return alert("Harap lengkapi semua data wajib");
+      return alert(
+        "Harap lengkapi semua data wajib"
+      );
     }
 
     try {
       setLoading(true);
 
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
-      formData.append("file", file);
-      formData.append("title", title);
-      formData.append("description", description || "");
-      formData.append("boxId", boxId);
+      formData.append(
+        "file",
+        file
+      );
 
-      await api.post("/documents/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      formData.append(
+        "title",
+        title
+      );
+
+      formData.append(
+        "description",
+        description || ""
+      );
+
+      formData.append(
+        "boxId",
+        boxId
+      );
+
+      await api.post(
+        "/documents/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
 
       alert("Upload Success 🎉");
 
       setFile(null);
+
       setTitle("");
+
       setDescription("");
+
       setDivision("");
+
       setRackId("");
+
       setBoxId("");
+
       setBoxes([]);
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Upload Failed");
+      alert(
+        err?.response?.data
+          ?.message ||
+          "Upload Failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -127,7 +203,9 @@ export default function UploadPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-cyan-500 font-bold text-xs uppercase tracking-widest">
               <ShieldCheck size={16} />
-              <span>Secure Digital Gateway</span>
+              <span>
+                Secure Digital Gateway
+              </span>
             </div>
 
             <h1 className="text-4xl font-black tracking-tight">
@@ -135,7 +213,9 @@ export default function UploadPage() {
             </h1>
 
             <p className="font-medium text-slate-500 dark:text-slate-400">
-              Upload dokumen digital dengan sistem modern cloud archive.
+              Upload dokumen digital
+              dengan sistem modern
+              cloud archive.
             </p>
           </div>
         </header>
@@ -147,17 +227,35 @@ export default function UploadPage() {
             <motion.div
               onDragOver={(e) => {
                 e.preventDefault();
-                setIsDragging(true);
+
+                setIsDragging(
+                  true
+                );
               }}
-              onDragLeave={() => setIsDragging(false)}
+              onDragLeave={() =>
+                setIsDragging(false)
+              }
               onDrop={(e) => {
                 e.preventDefault();
-                setIsDragging(false);
-                setFile(e.dataTransfer.files?.[0] || null);
+
+                setIsDragging(
+                  false
+                );
+
+                setFile(
+                  e.dataTransfer
+                    .files?.[0] ||
+                    null
+                );
               }}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
               animate={{
-                borderColor: isDragging ? "#06b6d4" : "#334155",
+                borderColor:
+                  isDragging
+                    ? "#06b6d4"
+                    : "#334155",
               }}
               className="
                 border-2 border-dashed
@@ -178,22 +276,32 @@ export default function UploadPage() {
                 ref={fileInputRef}
                 type="file"
                 hidden
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={(e) =>
+                  setFile(
+                    e.target
+                      .files?.[0] ||
+                      null
+                  )
+                }
               />
 
               {!file ? (
                 <div className="space-y-4">
                   <div className="p-5 bg-cyan-500/10 text-cyan-500 rounded-3xl w-fit mx-auto">
-                    <UploadCloud size={40} />
+                    <UploadCloud
+                      size={40}
+                    />
                   </div>
 
                   <div>
                     <h3 className="text-xl font-bold">
-                      Pilih file atau tarik ke sini
+                      Pilih file atau
+                      tarik ke sini
                     </h3>
 
                     <p className="text-sm text-slate-400 dark:text-slate-500">
-                      PDF, JPG, PNG, DOCX (Max 5MB)
+                      PDF, JPG, PNG,
+                      DOCX (Max 5MB)
                     </p>
                   </div>
                 </div>
@@ -210,7 +318,10 @@ export default function UploadPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="p-3 rounded-2xl bg-white dark:bg-slate-700">
-                      <FileText size={24} className="text-cyan-500" />
+                      <FileText
+                        size={24}
+                        className="text-cyan-500"
+                      />
                     </div>
 
                     <div className="text-left">
@@ -219,15 +330,27 @@ export default function UploadPage() {
                       </p>
 
                       <p className="text-[10px] font-black text-cyan-500 uppercase tracking-widest">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                        {(
+                          file.size /
+                          1024 /
+                          1024
+                        ).toFixed(
+                          2
+                        )}{" "}
+                        MB
                       </p>
                     </div>
                   </div>
 
                   <button
-                    onClick={(e) => {
+                    onClick={(
+                      e
+                    ) => {
                       e.stopPropagation();
-                      setFile(null);
+
+                      setFile(
+                        null
+                      );
                     }}
                     className="
                       p-2 rounded-full
@@ -252,42 +375,64 @@ export default function UploadPage() {
                 className="md:col-span-2"
               />
 
+              {/* DIVISION */}
               <SelectField
                 label="Division"
                 value={division}
-                onChange={(value: string) => {
-                  setDivision(value);
+                onChange={(
+                  value: string
+                ) => {
+                  setDivision(
+                    value
+                  );
+
                   setRackId("");
+
                   setBoxId("");
+
                   setBoxes([]);
                 }}
-                options={divisions.map((d) => ({
-                  label: d,
-                  value: d,
-                }))}
+                options={divisions.map(
+                  (d) => ({
+                    label: d,
+                    value: d,
+                  })
+                )}
               />
 
+              {/* RACK */}
               <SelectField
                 label="Rack"
                 value={rackId}
-                onChange={handleRackChange}
+                onChange={
+                  handleRackChange
+                }
                 disabled={!division}
-                options={filteredRacks.map((r) => ({
-                  label: r.name_rack,
-                  value: r.id,
-                }))}
+                options={filteredRacks.map(
+                  (r) => ({
+                    label:
+                      r.kode_rack,
+                    value: r.id,
+                  })
+                )}
               />
 
+              {/* BOX */}
               <SelectField
                 label="Box"
                 value={boxId}
-                onChange={setBoxId}
+                onChange={
+                  setBoxId
+                }
                 disabled={!rackId}
                 className="md:col-span-2"
-                options={boxes.map((b) => ({
-                  label: b.name_box,
-                  value: b.id,
-                }))}
+                options={boxes.map(
+                  (b) => ({
+                    label:
+                      b.kode_box,
+                    value: b.id,
+                  })
+                )}
               />
 
               {/* DESCRIPTION */}
@@ -308,8 +453,17 @@ export default function UploadPage() {
 
                 <textarea
                   rows={4}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  value={
+                    description
+                  }
+                  onChange={(
+                    e
+                  ) =>
+                    setDescription(
+                      e.target
+                        .value
+                    )
+                  }
                   placeholder="Tambahkan catatan..."
                   className="
                     w-full
@@ -347,43 +501,75 @@ export default function UploadPage() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full -mr-16 -mt-16 blur-3xl" />
 
               <h2 className="text-xl font-black mb-6 flex items-center gap-2">
-                <Info size={20} className="text-cyan-400" />
+                <Info
+                  size={20}
+                  className="text-cyan-400"
+                />
                 Summary
               </h2>
 
               <div className="space-y-4">
                 <SummaryItem
                   label="Target Division"
-                  value={division}
+                  value={
+                    division
+                  }
                 />
 
                 <SummaryItem
                   label="Rack Position"
-                  value={racks.find((r) => r.id === rackId)?.name_rack}
+                  value={
+                    racks.find(
+                      (
+                        r
+                      ) =>
+                        r.id ===
+                        rackId
+                    )
+                      ?.kode_rack
+                  }
                 />
 
                 <SummaryItem
                   label="Box Container"
-                  value={boxes.find((b) => b.id === boxId)?.name_box}
+                  value={
+                    boxes.find(
+                      (
+                        b
+                      ) =>
+                        b.id ===
+                        boxId
+                    )
+                      ?.kode_box
+                  }
                 />
               </div>
 
               <button
-                onClick={handleUpload}
-                disabled={loading || !file}
+                onClick={
+                  handleUpload
+                }
+                disabled={
+                  loading ||
+                  !file
+                }
                 className={`
                   w-full mt-8 p-4 rounded-2xl
                   font-black uppercase tracking-widest text-xs
                   flex justify-center items-center gap-3 transition-all
                   ${
-                    loading || !file
+                    loading ||
+                    !file
                       ? "bg-slate-300 text-slate-500 dark:bg-slate-800 dark:text-slate-500"
                       : "bg-cyan-500 text-white hover:bg-cyan-400 shadow-lg shadow-cyan-500/30"
                   }
                 `}
               >
                 {loading ? (
-                  <Loader2 className="animate-spin" size={18} />
+                  <Loader2
+                    className="animate-spin"
+                    size={18}
+                  />
                 ) : (
                   "Start Upload"
                 )}
@@ -405,7 +591,11 @@ function InputField({
   className,
 }: any) {
   return (
-    <div className={`space-y-2 ${className || ""}`}>
+    <div
+      className={`space-y-2 ${
+        className || ""
+      }`}
+    >
       <label
         className="
           text-[10px]
@@ -422,8 +612,14 @@ function InputField({
 
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        placeholder={
+          placeholder
+        }
         className="
           w-full
           p-4
@@ -453,7 +649,11 @@ function SelectField({
   className,
 }: any) {
   return (
-    <div className={`space-y-2 ${className || ""}`}>
+    <div
+      className={`space-y-2 ${
+        className || ""
+      }`}
+    >
       <label
         className="
           text-[10px]
@@ -470,8 +670,14 @@ function SelectField({
 
       <select
         value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
+        disabled={
+          disabled
+        }
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
         className="
           w-full
           p-4
@@ -488,13 +694,24 @@ function SelectField({
           disabled:opacity-50
         "
       >
-        <option value="">Select {label}</option>
+        <option value="">
+          Select {label}
+        </option>
 
-        {options.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
+        {options.map(
+          (opt: any) => (
+            <option
+              key={
+                opt.value
+              }
+              value={
+                opt.value
+              }
+            >
+              {opt.label}
+            </option>
+          )
+        )}
       </select>
     </div>
   );
@@ -525,7 +742,8 @@ function SummaryItem({
       </p>
 
       <p className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate">
-        {value || "Not Selected"}
+        {value ||
+          "Not Selected"}
       </p>
     </div>
   );
