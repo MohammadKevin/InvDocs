@@ -315,9 +315,9 @@ export default function AdminRackLayout({
 
               <div className="w-11 h-11 rounded-2xl border-2 border-cyan-500/20 p-0.5 shadow-sm">
                 <img
-                  src="https://ui-avatars.com/api/?name=Mohammad+Kevin&background=06b6d4&color=fff"
+                  src="https://ui-avatars.com/api/?name=Admin+Rack&background=06b6d4&color=fff"
                   className="w-full h-full rounded-[14px] object-cover"
-                  alt="User"
+                  alt="Admin Rack"
                 />
               </div>
             </div>
