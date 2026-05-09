@@ -61,6 +61,7 @@ export default function RacksPage() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchPendingRacks();
     }, []);
 
@@ -103,18 +104,17 @@ export default function RacksPage() {
             <header className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-cyan-600 font-black text-[10px] uppercase tracking-[0.3em]">
                     <ShieldCheck size={14} />
-                    System Infrastructure
+                    System Rack
                 </div>
                 <h1 className="text-4xl font-black text-slate-900 tracking-tight uppercase italic">
-                    Rack Provisions
+                    Register Admin dan Rak
                 </h1>
                 <p className="text-slate-500 font-medium max-w-2xl">
-                    Deploy administrative access and authorize hardware units for decentralized storage.
+                    Inisialisasi akses admin baru beserta unit rak yang akan mereka kelola. Setiap permintaan akan melalui proses otorisasi sebelum diaktifkan dalam sistem.
                 </p>
             </header>
 
             <div className="grid lg:grid-cols-12 gap-8 items-start">
-                {/* REGISTRATION FORM */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -135,7 +135,7 @@ export default function RacksPage() {
                         <InputField icon={<User size={18} />} placeholder="Admin Full Name" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} />
                         <InputField icon={<Mail size={18} />} type="email" placeholder="Email Address" value={form.email} onChange={(v: string) => setForm({ ...form, email: v })} />
                         <InputField icon={<Shield size={18} />} type="password" placeholder="Root Password" value={form.password} onChange={(v: string) => setForm({ ...form, password: v })} />
-                        <InputField icon={<Layout size={18} />} placeholder="Rack Identifier (e.g. R-101)" value={form.name_rack} onChange={(v: string) => setForm({ ...form, name_rack: v })} />
+                        <InputField icon={<Layout size={18} />} placeholder="Rack Name (e.g. R-Keuangan)" value={form.name_rack} onChange={(v: string) => setForm({ ...form, name_rack: v })} />
 
                         <div className="relative group">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors">
@@ -156,7 +156,7 @@ export default function RacksPage() {
                             disabled={isSubmitting}
                             className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-cyan-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-6 shadow-xl shadow-slate-200 active:scale-95"
                         >
-                            {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <>Initialize System Access <Zap size={14} fill="currentColor" /></>}
+                            {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <>Register <Zap size={14} fill="currentColor" /></>}
                         </button>
                     </form>
                 </motion.div>

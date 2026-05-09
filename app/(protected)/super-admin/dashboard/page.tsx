@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Server,
@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Home,
   Search,
-  Download,
   Building2,
   LayoutGrid,
   ArrowRight,
@@ -121,7 +120,7 @@ export default function DashboardPage() {
   }
 
   const handleBack = () => {
-    setSearchTerm(""); // Reset search saat navigasi
+    setSearchTerm("");
     if (view === "files") setView("boxes");
     else if (view === "boxes") setView("racks");
     else if (view === "racks") setView("divisions");
@@ -161,16 +160,23 @@ export default function DashboardPage() {
     }
   };
 
-  const getFilteredItems = () => {
-    const term = searchTerm.toLowerCase();
-    if (view === "divisions") return divisions.filter(d => d.toLowerCase().includes(term));
-    if (view === "racks") return allRacks.filter(r => r.divisi === activeDivision && r.name_rack.toLowerCase().includes(term));
-    if (view === "boxes") return boxes.filter(b => b.name_box.toLowerCase().includes(term));
-    if (view === "files") return documents.filter(d => d.title.toLowerCase().includes(term));
+  // Logika Filter Search berdasarkan View yang aktif
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    if (view === "divisions") {
+      return divisions.filter(d => d.toLowerCase().includes(term));
+    }
+    if (view === "racks") {
+      return allRacks.filter(r => r.divisi === activeDivision && r.name_rack.toLowerCase().includes(term));
+    }
+    if (view === "boxes") {
+      return boxes.filter(b => b.name_box.toLowerCase().includes(term));
+    }
+    if (view === "files") {
+      return documents.filter(d => d.title.toLowerCase().includes(term));
+    }
     return [];
-  };
-
-  const filteredItems = getFilteredItems();
+  }, [searchTerm, view, divisions, allRacks, activeDivision, boxes, documents]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
@@ -189,10 +195,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative group">
+          <div className="relative group w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
             <input
-              className="pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl w-full md:w-64 focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-sm"
+              className="pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl w-full focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-sm"
               placeholder={`Search in ${view}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -226,24 +232,18 @@ export default function DashboardPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 space-y-4">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-blue-100 rounded-full animate-pulse"></div>
-            <Loader2 className="absolute top-0 animate-spin text-blue-600" size={48} />
-          </div>
-          <p className="text-slate-400 font-medium animate-pulse text-sm">Synchronizing data...</p>
+          <Loader2 className="animate-spin text-blue-600" size={48} />
+          <p className="text-slate-400 font-medium text-sm">Synchronizing data...</p>
         </div>
       ) : (
         <div className="min-h-[400px]">
           {filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
               <FileSearch size={64} strokeWidth={1} />
-              <p className="font-medium">No results found for "{searchTerm}"</p>
+              <p className="font-medium text-center">No results found for "{searchTerm}"</p>
             </div>
           ) : (
-            <motion.div 
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            >
+            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <AnimatePresence mode="popLayout">
                 {view === "divisions" && (filteredItems as string[]).map((div) => (
                   <Card key={div} icon={Building2} title={div} subtitle="Division" onClick={() => openDivision(div)} />
@@ -260,8 +260,10 @@ export default function DashboardPage() {
                 {view === "files" && (filteredItems as FileDoc[]).map((d) => (
                   <motion.div
                     key={d.id}
+                    layout
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
                     className="group p-6 bg-white rounded-3xl border border-slate-200/60 shadow-sm hover:border-blue-500/30 transition-all flex flex-col h-full"
                   >
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl w-fit mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -284,7 +286,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Modal Preview Tetap Sama */}
+      {/* Modal Preview */}
       <AnimatePresence>
         {previewFile && (
           <motion.div 

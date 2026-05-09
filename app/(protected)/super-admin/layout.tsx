@@ -93,16 +93,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
             <Menu size={22} />
           </button>
 
-          <div className="hidden md:flex items-center bg-slate-100/50 px-5 py-2.5 rounded-2xl w-full max-w-md group focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-500/5 transition-all border border-transparent focus-within:border-cyan-100">
-            <Search size={18} className="text-slate-400 group-focus-within:text-cyan-500" />
-            <input type="text" placeholder="Global system search..." className="bg-transparent border-none focus:ring-0 text-sm ml-3 w-full outline-none text-slate-600 font-medium placeholder:text-slate-400" />
-          </div>
-
           <div className="flex items-center gap-5">
-            <button className="relative p-2.5 text-slate-400 hover:bg-slate-50 hover:text-cyan-600 rounded-xl transition-all">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-cyan-500 rounded-full border-2 border-white"></span>
-            </button>
 
             <div className="flex items-center gap-4 pl-5 border-l border-slate-200">
               <div className="text-right hidden sm:block">
@@ -135,7 +126,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                   <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-white">
                     <ShieldAlert size={20} />
                   </div>
-                  <span className="font-black text-xl text-slate-900 uppercase tracking-tighter">Raknesia</span>
+                  <span className="font-black text-xl text-slate-900 uppercase tracking-tighter">PT. Gudang Baru Berkah</span>
                 </div>
                 <button onClick={() => setIsMobileOpen(false)} className="p-2 bg-slate-50 rounded-xl text-slate-400"><X size={20} /></button>
               </div>

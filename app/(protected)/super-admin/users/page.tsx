@@ -4,15 +4,14 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
-  MoreVertical, 
   ShieldCheck, 
   Loader2, 
   AlertCircle,
   Mail,
   Calendar,
-  Filter,
   UserCircle2,
-  RefreshCcw
+  RefreshCcw,
+  ChevronDown
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -28,6 +27,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [error, setError] = useState("");
 
   const fetchUsers = async () => {
@@ -53,10 +53,17 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter gabungan: Search Name/Email/Role & Dropdown Role
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
+
+    return matchesSearch && matchesRole;
+  });
 
   return (
     <motion.div 
@@ -84,20 +91,31 @@ export default function UsersPage() {
       </div>
 
       <div className="bg-white rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden">
+        {/* Search & Filter Header */}
         <div className="p-8 border-b border-slate-50 flex flex-wrap items-center justify-between gap-6 bg-slate-50/30">
           <div className="relative flex-1 min-w-[300px] group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors" size={20} />
             <input 
               type="text" 
-              placeholder="Search by identity or credentials..." 
+              placeholder="Search by name, email, or role..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all shadow-sm"
             />
           </div>
-          <button className="p-4 bg-slate-900 text-white rounded-2xl hover:bg-cyan-600 transition-all shadow-lg shadow-slate-200">
-            <Filter size={20} />
-          </button>
+          
+          <div className="relative">
+            <select 
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="appearance-none pl-6 pr-12 py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-cyan-600 transition-all shadow-lg shadow-slate-200 outline-none cursor-pointer"
+            >
+              <option value="all">All Roles</option>
+              <option value="admin">Admin_rack</option>
+              <option value="user">User</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-white pointer-events-none" />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -124,7 +142,6 @@ export default function UsersPage() {
                   <th className="px-10 py-6">System Member</th>
                   <th className="px-10 py-6">Privilege Level</th>
                   <th className="px-10 py-6">Registration</th>
-                  <th className="px-10 py-6 text-right">Settings</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -153,7 +170,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-10 py-6">
                           <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                            user.role === 'admin' 
+                            user.role.toLowerCase() === 'admin' 
                             ? 'bg-cyan-50 text-cyan-700 border-cyan-100' 
                             : 'bg-slate-50 text-slate-600 border-slate-100'
                           }`}>
@@ -166,16 +183,11 @@ export default function UsersPage() {
                             {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : "---"}
                           </div>
                         </td>
-                        <td className="px-10 py-6 text-right">
-                          <button className="p-3 text-slate-300 hover:text-cyan-600 hover:bg-white rounded-xl transition-all shadow-none hover:shadow-sm">
-                            <MoreVertical size={20} />
-                          </button>
-                        </td>
                       </motion.tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-32 text-center">
+                      <td colSpan={3} className="py-32 text-center">
                         <p className="text-slate-400 uppercase tracking-[0.4em] text-[10px] font-black italic">Null set: No matching profiles</p>
                       </td>
                     </tr>
