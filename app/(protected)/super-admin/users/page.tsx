@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { api } from "@/lib/api";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface User {
   id: string;

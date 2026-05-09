@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -47,11 +47,10 @@ export default function LandingPage() {
 
       {/* ─── Navbar ─── */}
       <nav
-        className={`fixed w-full z-[100] transition-all duration-500 ${
-          isScrolled
+        className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled
             ? "bg-white/70 dark:bg-gray-900/80 backdrop-blur-xl py-4 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] border-b border-slate-100 dark:border-gray-800"
             : "bg-transparent py-8"
-        }`}
+          }`}
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
           {/* Logo */}

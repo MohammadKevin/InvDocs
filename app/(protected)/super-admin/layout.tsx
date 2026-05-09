@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import { ThemeToggle } from "@/components/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const sidebarItems = [
   {
