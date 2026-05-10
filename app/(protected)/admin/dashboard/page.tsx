@@ -192,14 +192,17 @@ export default function DashboardPage() {
 
       setDocuments(docs);
 
-      setDivisions([
-        ...new Set(
-          racks.map(
-            (r: Rack) =>
-              r.divisi
+      const uniqueDivisions: string[] =
+        Array.from(
+          new Set(
+            racks.map(
+              (r: Rack) =>
+                String(r.divisi)
+            )
           )
-        ),
-      ]);
+        );
+
+      setDivisions(uniqueDivisions);
     } catch (err) {
       console.error(err);
     } finally {
@@ -242,7 +245,7 @@ export default function DashboardPage() {
       return allRacks.filter(
         (r) =>
           r.divisi ===
-            activeDivision &&
+          activeDivision &&
           r.kode_rack
             ?.toLowerCase()
             .includes(
@@ -336,10 +339,10 @@ export default function DashboardPage() {
     view === "divisions"
       ? "Divisions"
       : view === "racks"
-      ? activeDivision
-      : view === "boxes"
-      ? activeRack?.kode_rack
-      : activeBox?.kode_box;
+        ? activeDivision
+        : view === "boxes"
+          ? activeRack?.kode_rack
+          : activeBox?.kode_box;
 
   const incomingDocsChart =
     useMemo(() => {
@@ -492,9 +495,9 @@ export default function DashboardPage() {
 
                 return (
                   docDate.getMonth() ===
-                    d.getMonth() &&
+                  d.getMonth() &&
                   docDate.getFullYear() ===
-                    d.getFullYear()
+                  d.getFullYear()
                 );
               }
             ).length;
@@ -519,7 +522,7 @@ export default function DashboardPage() {
 
           d.setFullYear(
             now.getFullYear() -
-              i
+            i
           );
 
           const label =
@@ -601,18 +604,18 @@ export default function DashboardPage() {
 
           {view !==
             "divisions" && (
-            <button
-              onClick={
-                handleBack
-              }
-              className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-cyan-600 text-white text-sm font-bold transition-all"
-            >
-              <ArrowLeft
-                size={16}
-              />
-              Back
-            </button>
-          )}
+              <button
+                onClick={
+                  handleBack
+                }
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-cyan-600 text-white text-sm font-bold transition-all"
+              >
+                <ArrowLeft
+                  size={16}
+                />
+                Back
+              </button>
+            )}
         </div>
       </header>
 
@@ -649,8 +652,8 @@ export default function DashboardPage() {
                     subtitle="Division"
                     accent={
                       ACCENTS[
-                        i %
-                          ACCENTS.length
+                      i %
+                      ACCENTS.length
                       ]
                     }
                     onClick={() =>
@@ -683,8 +686,8 @@ export default function DashboardPage() {
                     }
                     accent={
                       ACCENTS[
-                        i %
-                          ACCENTS.length
+                      i %
+                      ACCENTS.length
                       ]
                     }
                     onClick={() =>
@@ -714,8 +717,8 @@ export default function DashboardPage() {
                     subtitle="Archive Box"
                     accent={
                       ACCENTS[
-                        i %
-                          ACCENTS.length
+                      i %
+                      ACCENTS.length
                       ]
                     }
                     onClick={() =>
@@ -747,12 +750,11 @@ export default function DashboardPage() {
                     className="group p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#081028] shadow-sm hover:shadow-xl transition-all"
                   >
                     <div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
-                        ACCENTS[
-                          i %
-                            ACCENTS.length
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${ACCENTS[
+                        i %
+                        ACCENTS.length
                         ]
-                      } text-white flex items-center justify-center mb-5`}
+                        } text-white flex items-center justify-center mb-5`}
                     >
                       <FileText
                         size={
@@ -867,12 +869,11 @@ export default function DashboardPage() {
                           item.key as any
                         )
                       }
-                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                        chartRange ===
-                        item.key
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${chartRange ===
+                          item.key
                           ? "bg-cyan-500 text-white"
                           : "bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400"
-                      }`}
+                        }`}
                     >
                       {
                         item.label
