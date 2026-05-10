@@ -113,7 +113,6 @@ export default function AdminRackLayout({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-white flex transition-colors duration-300">
-      {/* SIDEBAR DESKTOP */}
       <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 sticky top-0 h-screen z-50">
         <div className="p-8">
           <div className="flex items-center gap-3">
@@ -187,7 +186,6 @@ export default function AdminRackLayout({
         </div>
       </aside>
 
-      {/* MOBILE SIDEBAR */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -236,7 +234,7 @@ export default function AdminRackLayout({
 
                   <div>
                     <p className="font-black text-sm">
-                      PT. Gudang Baru
+                      PT. Gudang Baru Berkah
                     </p>
 
                     <p className="text-[10px] uppercase tracking-widest text-slate-400">
@@ -317,7 +315,6 @@ export default function AdminRackLayout({
         )}
       </AnimatePresence>
 
-      {/* CONTENT */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-40 h-20 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -383,7 +380,7 @@ export default function AdminRackLayout({
                 </p>
 
                 <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-500">
-                  PT. Gudang Baru
+                  PT. Gudang Baru Berkah
                 </p>
               </div>
 
