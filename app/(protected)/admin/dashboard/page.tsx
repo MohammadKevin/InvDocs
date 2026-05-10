@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
@@ -15,11 +20,26 @@ import {
   X,
   Search,
   Download,
+  BarChart3,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
 
-type View = "divisions" | "racks" | "boxes" | "files";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+
+type View =
+  | "divisions"
+  | "racks"
+  | "boxes"
+  | "files";
 
 type Rack = {
   id: string;
@@ -39,6 +59,7 @@ type FileDoc = {
   title: string;
   fileUrl: string;
   boxId: string;
+  createdAt?: string;
 };
 
 const ACCENTS = [
@@ -73,8 +94,6 @@ function Card({
       <div
         className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${accent}`}
       />
-
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <div className="relative p-6 flex flex-col gap-5">
         <div className="flex items-center justify-between">
@@ -111,8 +130,10 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] =
     useState("");
 
-  const [activeDivision, setActiveDivision] =
-    useState<string | null>(null);
+  const [
+    activeDivision,
+    setActiveDivision,
+  ] = useState<string | null>(null);
 
   const [activeRack, setActiveRack] =
     useState<Rack | null>(null);
@@ -135,6 +156,14 @@ export default function DashboardPage() {
   const [previewFile, setPreviewFile] =
     useState<FileDoc | null>(null);
 
+  const [chartRange, setChartRange] =
+    useState<
+      | "week"
+      | "month"
+      | "year"
+      | "3year"
+    >("week");
+
   useEffect(() => {
     fetchInitial();
   }, []);
@@ -143,15 +172,33 @@ export default function DashboardPage() {
     try {
       setLoading(true);
 
-      const res = await api.get("/rack");
+      const rackRes =
+        await api.get("/rack");
 
-      const data: Rack[] =
-        res.data?.data || res.data || [];
+      const docRes =
+        await api.get("/documents");
 
-      setAllRacks(data);
+      const racks =
+        rackRes.data?.data ||
+        rackRes.data ||
+        [];
+
+      const docs =
+        docRes.data?.data ||
+        docRes.data ||
+        [];
+
+      setAllRacks(racks);
+
+      setDocuments(docs);
 
       setDivisions([
-        ...new Set(data.map((r) => r.divisi)),
+        ...new Set(
+          racks.map(
+            (r: Rack) =>
+              r.divisi
+          )
+        ),
       ]);
     } catch (err) {
       console.error(err);
@@ -165,76 +212,99 @@ export default function DashboardPage() {
 
     if (view === "files") {
       setView("boxes");
-    } else if (view === "boxes") {
+    } else if (
+      view === "boxes"
+    ) {
       setView("racks");
-    } else if (view === "racks") {
+    } else if (
+      view === "racks"
+    ) {
       setView("divisions");
     }
   };
 
-  const filteredDivisions = useMemo(() => {
-    return divisions.filter((d) =>
-      d.toLowerCase().includes(
-        searchTerm.toLowerCase()
-      )
-    );
-  }, [divisions, searchTerm]);
-
-  const filteredRacks = useMemo(() => {
-    return allRacks.filter(
-      (r) =>
-        r.divisi === activeDivision &&
-        r.kode_rack
+  const filteredDivisions =
+    useMemo(() => {
+      return divisions.filter((d) =>
+        d
           ?.toLowerCase()
           .includes(
             searchTerm.toLowerCase()
           )
-    );
-  }, [
-    allRacks,
-    activeDivision,
-    searchTerm,
-  ]);
+      );
+    }, [
+      divisions,
+      searchTerm,
+    ]);
 
-  const filteredBoxes = useMemo(() => {
-    return boxes.filter((b) =>
-      b.kode_box
-        ?.toLowerCase()
-        .includes(
-          searchTerm.toLowerCase()
-        )
-    );
-  }, [boxes, searchTerm]);
+  const filteredRacks =
+    useMemo(() => {
+      return allRacks.filter(
+        (r) =>
+          r.divisi ===
+            activeDivision &&
+          r.kode_rack
+            ?.toLowerCase()
+            .includes(
+              searchTerm.toLowerCase()
+            )
+      );
+    }, [
+      allRacks,
+      activeDivision,
+      searchTerm,
+    ]);
 
-  const filteredFiles = useMemo(() => {
-    return documents.filter((f) =>
-      f.title
-        ?.toLowerCase()
-        .includes(
-          searchTerm.toLowerCase()
-        )
-    );
-  }, [documents, searchTerm]);
+  const filteredBoxes =
+    useMemo(() => {
+      return boxes.filter((b) =>
+        b.kode_box
+          ?.toLowerCase()
+          .includes(
+            searchTerm.toLowerCase()
+          )
+      );
+    }, [boxes, searchTerm]);
 
-  const openDivision = (div: string) => {
+  const filteredFiles =
+    useMemo(() => {
+      return documents.filter((f) =>
+        f.title
+          ?.toLowerCase()
+          .includes(
+            searchTerm.toLowerCase()
+          )
+      );
+    }, [
+      documents,
+      searchTerm,
+    ]);
+
+  const openDivision = (
+    div: string
+  ) => {
     setActiveDivision(div);
     setSearchTerm("");
     setView("racks");
   };
 
-  const openRack = async (rack: Rack) => {
+  const openRack = async (
+    rack: Rack
+  ) => {
     try {
       setLoading(true);
 
       setActiveRack(rack);
-      setSearchTerm("");
 
-      const res = await api.get(
-        `/boxes/rack/${rack.id}`
-      );
+      const res =
+        await api.get(
+          `/boxes/rack/${rack.id}`
+        );
 
-      const data: Box[] =
-        res.data?.data || res.data || [];
+      const data =
+        res.data?.data ||
+        res.data ||
+        [];
 
       setBoxes(data);
 
@@ -246,32 +316,20 @@ export default function DashboardPage() {
     }
   };
 
-  const openBox = async (box: Box) => {
-    try {
-      setLoading(true);
+  const openBox = (
+    box: Box
+  ) => {
+    setActiveBox(box);
 
-      setActiveBox(box);
-      setSearchTerm("");
-
-      const res = await api.get(
-        "/documents"
+    const filtered =
+      documents.filter(
+        (d) =>
+          d.boxId === box.id
       );
 
-      const data: FileDoc[] =
-        res.data?.data || res.data || [];
+    setDocuments(filtered);
 
-      setDocuments(
-        data.filter(
-          (d) => d.boxId === box.id
-        )
-      );
-
-      setView("files");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    setView("files");
   };
 
   const pageTitle =
@@ -282,6 +340,225 @@ export default function DashboardPage() {
       : view === "boxes"
       ? activeRack?.kode_rack
       : activeBox?.kode_box;
+
+  const incomingDocsChart =
+    useMemo(() => {
+      const now = new Date();
+
+      const result: {
+        name: string;
+        total: number;
+      }[] = [];
+
+      if (
+        chartRange === "week"
+      ) {
+        for (
+          let i = 6;
+          i >= 0;
+          i--
+        ) {
+          const d =
+            new Date();
+
+          d.setDate(
+            now.getDate() - i
+          );
+
+          const label =
+            d.toLocaleDateString(
+              "id-ID",
+              {
+                weekday:
+                  "short",
+              }
+            );
+
+          const total =
+            documents.filter(
+              (doc) => {
+                if (
+                  !doc.createdAt
+                )
+                  return false;
+
+                const docDate =
+                  new Date(
+                    doc.createdAt
+                  );
+
+                return (
+                  docDate.toDateString() ===
+                  d.toDateString()
+                );
+              }
+            ).length;
+
+          result.push({
+            name: label,
+            total,
+          });
+        }
+      }
+
+      if (
+        chartRange === "month"
+      ) {
+        for (
+          let i = 29;
+          i >= 0;
+          i--
+        ) {
+          const d =
+            new Date();
+
+          d.setDate(
+            now.getDate() - i
+          );
+
+          const label =
+            d.toLocaleDateString(
+              "id-ID",
+              {
+                day: "2-digit",
+                month:
+                  "short",
+              }
+            );
+
+          const total =
+            documents.filter(
+              (doc) => {
+                if (
+                  !doc.createdAt
+                )
+                  return false;
+
+                const docDate =
+                  new Date(
+                    doc.createdAt
+                  );
+
+                return (
+                  docDate.toDateString() ===
+                  d.toDateString()
+                );
+              }
+            ).length;
+
+          result.push({
+            name: label,
+            total,
+          });
+        }
+      }
+
+      if (
+        chartRange === "year"
+      ) {
+        for (
+          let i = 11;
+          i >= 0;
+          i--
+        ) {
+          const d =
+            new Date();
+
+          d.setMonth(
+            now.getMonth() - i
+          );
+
+          const label =
+            d.toLocaleDateString(
+              "id-ID",
+              {
+                month:
+                  "short",
+              }
+            );
+
+          const total =
+            documents.filter(
+              (doc) => {
+                if (
+                  !doc.createdAt
+                )
+                  return false;
+
+                const docDate =
+                  new Date(
+                    doc.createdAt
+                  );
+
+                return (
+                  docDate.getMonth() ===
+                    d.getMonth() &&
+                  docDate.getFullYear() ===
+                    d.getFullYear()
+                );
+              }
+            ).length;
+
+          result.push({
+            name: label,
+            total,
+          });
+        }
+      }
+
+      if (
+        chartRange === "3year"
+      ) {
+        for (
+          let i = 2;
+          i >= 0;
+          i--
+        ) {
+          const d =
+            new Date();
+
+          d.setFullYear(
+            now.getFullYear() -
+              i
+          );
+
+          const label =
+            d
+              .getFullYear()
+              .toString();
+
+          const total =
+            documents.filter(
+              (doc) => {
+                if (
+                  !doc.createdAt
+                )
+                  return false;
+
+                const docDate =
+                  new Date(
+                    doc.createdAt
+                  );
+
+                return (
+                  docDate.getFullYear() ===
+                  d.getFullYear()
+                );
+              }
+            ).length;
+
+          result.push({
+            name: label,
+            total,
+          });
+        }
+      }
+
+      return result;
+    }, [
+      documents,
+      chartRange,
+    ]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
@@ -297,9 +574,9 @@ export default function DashboardPage() {
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 font-medium">
-            Browse divisions, racks,
-            archive boxes, and digital
-            files.
+            Browse divisions,
+            racks, archive boxes,
+            and digital files.
           </p>
         </div>
 
@@ -322,12 +599,17 @@ export default function DashboardPage() {
             />
           </div>
 
-          {view !== "divisions" && (
+          {view !==
+            "divisions" && (
             <button
-              onClick={handleBack}
+              onClick={
+                handleBack
+              }
               className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-cyan-600 text-white text-sm font-bold transition-all"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft
+                size={16}
+              />
               Back
             </button>
           )}
@@ -346,133 +628,299 @@ export default function DashboardPage() {
           </p>
         </div>
       ) : (
-        <motion.div
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
-        >
-          {view === "divisions" &&
-            filteredDivisions.map(
-              (d, i) => (
-                <Card
-                  key={d}
-                  icon={Building2}
-                  title={d}
-                  subtitle="Division"
-                  accent={
-                    ACCENTS[
-                      i %
-                        ACCENTS.length
-                    ]
-                  }
-                  onClick={() =>
-                    openDivision(d)
-                  }
-                />
-              )
-            )}
-
-          {view === "racks" &&
-            filteredRacks.map(
-              (r, i) => (
-                <Card
-                  key={r.id}
-                  icon={Server}
-                  title={r.kode_rack}
-                  subtitle={
-                    r.status || "Rack"
-                  }
-                  accent={
-                    ACCENTS[
-                      i %
-                        ACCENTS.length
-                    ]
-                  }
-                  onClick={() =>
-                    openRack(r)
-                  }
-                />
-              )
-            )}
-
-          {view === "boxes" &&
-            filteredBoxes.map(
-              (b, i) => (
-                <Card
-                  key={b.id}
-                  icon={Archive}
-                  title={b.kode_box}
-                  subtitle="Archive Box"
-                  accent={
-                    ACCENTS[
-                      i %
-                        ACCENTS.length
-                    ]
-                  }
-                  onClick={() =>
-                    openBox(b)
-                  }
-                />
-              )
-            )}
-
-          {view === "files" &&
-            filteredFiles.map(
-              (f, i) => (
-                <motion.div
-                  key={f.id}
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  className="group p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#081028] shadow-sm hover:shadow-xl transition-all"
-                >
-                  <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
+        <>
+          <motion.div
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
+          >
+            {view ===
+              "divisions" &&
+              filteredDivisions.map(
+                (
+                  d,
+                  i
+                ) => (
+                  <Card
+                    key={d}
+                    icon={
+                      Building2
+                    }
+                    title={d}
+                    subtitle="Division"
+                    accent={
                       ACCENTS[
                         i %
                           ACCENTS.length
                       ]
-                    } text-white flex items-center justify-center mb-5`}
+                    }
+                    onClick={() =>
+                      openDivision(
+                        d
+                      )
+                    }
+                  />
+                )
+              )}
+
+            {view ===
+              "racks" &&
+              filteredRacks.map(
+                (
+                  r,
+                  i
+                ) => (
+                  <Card
+                    key={r.id}
+                    icon={
+                      Server
+                    }
+                    title={
+                      r.kode_rack
+                    }
+                    subtitle={
+                      r.status ||
+                      "Rack"
+                    }
+                    accent={
+                      ACCENTS[
+                        i %
+                          ACCENTS.length
+                      ]
+                    }
+                    onClick={() =>
+                      openRack(
+                        r
+                      )
+                    }
+                  />
+                )
+              )}
+
+            {view ===
+              "boxes" &&
+              filteredBoxes.map(
+                (
+                  b,
+                  i
+                ) => (
+                  <Card
+                    key={b.id}
+                    icon={
+                      Archive
+                    }
+                    title={
+                      b.kode_box
+                    }
+                    subtitle="Archive Box"
+                    accent={
+                      ACCENTS[
+                        i %
+                          ACCENTS.length
+                      ]
+                    }
+                    onClick={() =>
+                      openBox(
+                        b
+                      )
+                    }
+                  />
+                )
+              )}
+
+            {view ===
+              "files" &&
+              filteredFiles.map(
+                (
+                  f,
+                  i
+                ) => (
+                  <motion.div
+                    key={f.id}
+                    initial={{
+                      opacity: 0,
+                      y: 20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    className="group p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#081028] shadow-sm hover:shadow-xl transition-all"
                   >
-                    <FileText size={26} />
-                  </div>
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
+                        ACCENTS[
+                          i %
+                            ACCENTS.length
+                        ]
+                      } text-white flex items-center justify-center mb-5`}
+                    >
+                      <FileText
+                        size={
+                          26
+                        }
+                      />
+                    </div>
 
-                  <h3 className="font-black text-slate-800 dark:text-white line-clamp-2">
-                    {f.title}
-                  </h3>
+                    <h3 className="font-black text-slate-800 dark:text-white line-clamp-2">
+                      {f.title}
+                    </h3>
 
-                  <p className="mt-2 text-sm text-slate-400">
-                    Digital Document
+                    <p className="mt-2 text-sm text-slate-400">
+                      Digital
+                      Document
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                      <button
+                        onClick={() =>
+                          setPreviewFile(
+                            f
+                          )
+                        }
+                        className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-cyan-600 text-white py-3 rounded-2xl text-sm font-bold transition-all"
+                      >
+                        <Eye
+                          size={
+                            16
+                          }
+                        />
+                        Preview
+                      </button>
+
+                      <a
+                        href={
+                          f.fileUrl
+                        }
+                        target="_blank"
+                        className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-2xl text-sm font-bold transition-all"
+                      >
+                        <Download
+                          size={
+                            16
+                          }
+                        />
+                        Download
+                      </a>
+                    </div>
+                  </motion.div>
+                )
+              )}
+          </motion.div>
+
+          <div className="bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 flex items-center justify-center">
+                  <BarChart3
+                    size={26}
+                  />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                    Incoming
+                    Documents
+                  </h2>
+
+                  <p className="text-sm text-slate-400">
+                    Statistik
+                    jumlah
+                    dokumen
+                    masuk
                   </p>
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-6">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  {
+                    key: "week",
+                    label:
+                      "1 Minggu",
+                  },
+                  {
+                    key: "month",
+                    label:
+                      "1 Bulan",
+                  },
+                  {
+                    key: "year",
+                    label:
+                      "1 Tahun",
+                  },
+                  {
+                    key:
+                      "3year",
+                    label:
+                      "3 Tahun",
+                  },
+                ].map(
+                  (
+                    item
+                  ) => (
                     <button
-                      onClick={() =>
-                        setPreviewFile(f)
+                      key={
+                        item.key
                       }
-                      className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-cyan-600 text-white py-3 rounded-2xl text-sm font-bold transition-all"
+                      onClick={() =>
+                        setChartRange(
+                          item.key as any
+                        )
+                      }
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        chartRange ===
+                        item.key
+                          ? "bg-cyan-500 text-white"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400"
+                      }`}
                     >
-                      <Eye size={16} />
-                      Preview
+                      {
+                        item.label
+                      }
                     </button>
+                  )
+                )}
+              </div>
+            </div>
 
-                    <a
-                      href={f.fileUrl}
-                      target="_blank"
-                      className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-2xl text-sm font-bold transition-all"
-                    >
-                      <Download size={16} />
-                      Download
-                    </a>
-                  </div>
-                </motion.div>
-              )
-            )}
-        </motion.div>
+            <div className="h-[380px]">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <BarChart
+                  data={
+                    incomingDocsChart
+                  }
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    strokeOpacity={
+                      0.1
+                    }
+                  />
+
+                  <XAxis dataKey="name" />
+
+                  <YAxis />
+
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="total"
+                    fill="#06b6d4"
+                    radius={[
+                      10,
+                      10,
+                      0,
+                      0,
+                    ]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
       )}
 
       <AnimatePresence>
@@ -488,7 +936,9 @@ export default function DashboardPage() {
               opacity: 0,
             }}
             onClick={() =>
-              setPreviewFile(null)
+              setPreviewFile(
+                null
+              )
             }
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           >
@@ -508,11 +958,6 @@ export default function DashboardPage() {
                 opacity: 0,
                 y: 20,
               }}
-              transition={{
-                type: "spring",
-                stiffness: 280,
-                damping: 24,
-              }}
               onClick={(e) =>
                 e.stopPropagation()
               }
@@ -521,45 +966,39 @@ export default function DashboardPage() {
               <div className="h-20 px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500 mb-1">
-                    Document Preview
+                    Document
+                    Preview
                   </p>
 
                   <h2 className="font-black text-slate-800 dark:text-white truncate max-w-[300px]">
-                    {previewFile.title}
+                    {
+                      previewFile.title
+                    }
                   </h2>
                 </div>
 
                 <button
                   onClick={() =>
-                    setPreviewFile(null)
+                    setPreviewFile(
+                      null
+                    )
                   }
                   className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center transition-all"
                 >
-                  <X size={18} />
+                  <X
+                    size={18}
+                  />
                 </button>
               </div>
 
-              <div className="w-full h-[calc(100%-80px)] bg-slate-100 dark:bg-slate-900">
-                {previewFile.fileUrl?.includes(
-                  ".pdf"
-                ) ? (
-                  <iframe
-                    src={
-                      previewFile.fileUrl
-                    }
-                    className="w-full h-full"
-                  />
-                ) : (
-                  <img
-                    src={
-                      previewFile.fileUrl
-                    }
-                    alt={
-                      previewFile.title
-                    }
-                    className="w-full h-full object-contain"
-                  />
-                )}
+              <div className="w-full h-[calc(100%-80px)] bg-slate-200 dark:bg-slate-800">
+                <iframe
+                  src={
+                    previewFile.fileUrl
+                  }
+                  title="Document Preview"
+                  className="w-full h-full"
+                />
               </div>
             </motion.div>
           </motion.div>
