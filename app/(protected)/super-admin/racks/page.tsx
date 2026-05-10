@@ -539,10 +539,6 @@ export default function RacksPage() {
                                                             <span className="font-black text-slate-900 dark:text-white text-base uppercase tracking-tight italic">
                                                                 {rack.kode_rack}
                                                             </span>
-
-                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                                                REF: {String(rack.id).slice(0, 8)}
-                                                            </span>
                                                         </div>
                                                     </div>
                                                 </td>
