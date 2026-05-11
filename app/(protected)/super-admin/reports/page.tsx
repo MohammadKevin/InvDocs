@@ -25,6 +25,7 @@ import {
   Pie,
   Cell,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
 import { api } from "@/lib/api";
@@ -48,7 +49,7 @@ interface StatusReport {
   total: number;
 }
 
-const COLORS = ["#06b6d4", "#22c55e", "#ef4444", "#f59e0b"];
+const COLORS = ["#06b6d4", "#22c55e", "#f59e0b", "#ef4444"];
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function ReportsPage() {
 
       setStatus(statusRes.data?.data || statusRes.data || []);
     } catch (error) {
-      console.error("REPORT ERROR:", error);
+      console.error("REPORT FETCH ERROR:", error);
     } finally {
       setLoading(false);
     }
@@ -118,7 +119,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <Loader2 className="animate-spin text-cyan-400" size={42} />
+        <Loader2 className="animate-spin text-cyan-400" size={44} />
 
         <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-500">
           Loading Reports...
@@ -129,6 +130,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-8">
+      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 text-cyan-400 font-black text-[10px] uppercase tracking-[0.3em] mb-3">
@@ -154,6 +156,7 @@ export default function ReportsPage() {
         </button>
       </div>
 
+      {/* SUMMARY */}
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-5">
           <Card
@@ -194,7 +197,9 @@ export default function ReportsPage() {
         </div>
       )}
 
+      {/* CHARTS */}
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+        {/* BAR CHART */}
         <div className="bg-[#081028] border border-cyan-500/10 rounded-[2rem] p-7 shadow-xl shadow-black/20">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
@@ -223,12 +228,13 @@ export default function ReportsPage() {
 
                 <Tooltip />
 
-                <Bar dataKey="total" radius={[12, 12, 0, 0]} fill="#06b6d4" />
+                <Bar dataKey="total" fill="#06b6d4" radius={[14, 14, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* PIE CHART */}
         <div className="bg-[#081028] border border-cyan-500/10 rounded-[2rem] p-7 shadow-xl shadow-black/20">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
@@ -265,6 +271,8 @@ export default function ReportsPage() {
                 </Pie>
 
                 <Tooltip />
+
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
