@@ -20,6 +20,7 @@ import { api } from "@/lib/api";
 
 interface Box {
   id: string;
+  name_box: string;
   kode_box: string;
   description?: string;
   rackId: string;
@@ -39,6 +40,8 @@ export default function BoxesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [rackId, setRackId] = useState("");
+
+  const [nameBox, setNameBox] = useState("");
 
   const [description, setDescription] = useState("");
 
@@ -91,11 +94,14 @@ export default function BoxesPage() {
 
     try {
       await api.post("/boxes", {
+        name_box: nameBox,
         description,
         rackId,
       });
 
       setIsModalOpen(false);
+
+      setNameBox("");
 
       setDescription("");
 
@@ -121,12 +127,15 @@ export default function BoxesPage() {
       setUpdateLoading(true);
 
       await api.patch(`/boxes/${editingBox.id}`, {
+        name_box: nameBox,
         description,
       });
 
       setEditingBox(null);
 
       setIsModalOpen(false);
+
+      setNameBox("");
 
       setDescription("");
 
@@ -173,11 +182,14 @@ export default function BoxesPage() {
   }
 
   const filteredBoxes = boxes.filter((box) =>
-    [box.kode_box || "", box.description || ""].some(
-      (value) =>
-        value
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+    [
+      box.name_box || "",
+      box.kode_box || "",
+      box.description || "",
+    ].some((value) =>
+      value
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     )
   );
 
@@ -198,7 +210,11 @@ export default function BoxesPage() {
         <button
           onClick={() => {
             setEditingBox(null);
+
+            setNameBox("");
+
             setDescription("");
+
             setIsModalOpen(true);
           }}
           className="flex items-center gap-3 bg-cyan-500 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-cyan-200 hover:bg-cyan-600 transition-all active:scale-95"
@@ -218,7 +234,7 @@ export default function BoxesPage() {
 
             <input
               className="w-full pl-14 pr-10 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all"
-              placeholder="Search by box code..."
+              placeholder="Search box..."
               value={searchTerm}
               onChange={(e) =>
                 setSearchTerm(e.target.value)
@@ -265,7 +281,7 @@ export default function BoxesPage() {
                   </th>
 
                   <th className="px-10 py-6">
-                    Description
+                    Details
                   </th>
 
                   <th className="px-10 py-6">
@@ -304,6 +320,10 @@ export default function BoxesPage() {
 
                           <div>
                             <p className="font-black text-slate-900 dark:text-white text-lg">
+                              {box.name_box}
+                            </p>
+
+                            <p className="text-xs text-cyan-500 font-bold mt-1">
                               {box.kode_box}
                             </p>
 
@@ -333,6 +353,10 @@ export default function BoxesPage() {
                           <button
                             onClick={() => {
                               setEditingBox(box);
+
+                              setNameBox(
+                                box.name_box || ""
+                              );
 
                               setDescription(
                                 box.description || ""
@@ -413,7 +437,11 @@ export default function BoxesPage() {
               <button
                 onClick={() => {
                   setIsModalOpen(false);
+
                   setEditingBox(null);
+
+                  setNameBox("");
+
                   setDescription("");
                 }}
                 className="absolute top-10 right-10 text-slate-400 hover:text-cyan-500 transition-all"
@@ -452,6 +480,21 @@ export default function BoxesPage() {
                     />
                   </div>
                 )}
+
+                <div className="space-y-3">
+                  <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">
+                    Name Box
+                  </label>
+
+                  <input
+                    value={nameBox}
+                    onChange={(e) =>
+                      setNameBox(e.target.value)
+                    }
+                    placeholder="Masukkan nama box..."
+                    className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-sm font-bold border-2 border-transparent focus:border-cyan-500/20 focus:bg-white dark:focus:bg-slate-950 outline-none transition-all"
+                  />
+                </div>
 
                 <div className="space-y-3">
                   <label className="text-[10px] uppercase text-slate-500 font-black tracking-widest ml-4">
