@@ -493,7 +493,7 @@ export default function Page() {
               </div>
 
               <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height={380}>
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient
