@@ -16,6 +16,8 @@ import {
   Loader2,
   X,
   BarChart3,
+  Home,
+  ChevronRight,
 } from "lucide-react";
 
 import {
@@ -90,6 +92,7 @@ export default function DashboardPage() {
   >("month");
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchInitial();
   }, []);
 
@@ -289,6 +292,7 @@ export default function DashboardPage() {
             Digital Archive
           </h1>
         </div>
+        
 
         <div className="flex items-center gap-4">
           {view !== "divisions" && (
@@ -315,6 +319,36 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      <nav className="flex items-center gap-2 overflow-x-auto">
+  <button
+    onClick={() => {
+      setView("divisions");
+      setSearch("");
+    }}
+    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+      view === "divisions"
+        ? "bg-cyan-500 text-white"
+        : "bg-white dark:bg-[#081028] text-slate-500 border border-slate-200 dark:border-slate-800"
+    }`}
+  >
+    <Home size={16} />
+    Root
+  </button>
+
+  {view !== "divisions" && (
+    <>
+      <ChevronRight size={16} className="text-slate-300" />
+
+      <button
+        onClick={handleBack}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+    </>
+  )}
+</nav>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 gap-4">

@@ -14,6 +14,9 @@ import {
   Eye,
   Download,
   BarChart3,
+  ArrowLeft,
+  ChevronRight,
+  Home,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -37,9 +40,8 @@ interface Rack {
 }
 
 interface Box {
-  subtitle: ReactNode;
-  name_box: ReactNode;
   id: string;
+  name_box: string;
   kode_box: string;
   rackId: string;
 }
@@ -69,13 +71,12 @@ export default function Page() {
 
   const [allDocuments, setAllDocuments] = useState<FileDoc[]>([]);
 
-  const [activeDivision, setActiveDivision] = useState<string | null>(null);
-
   const [chartRange, setChartRange] = useState<"week" | "month" | "year">(
     "week",
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchInitial();
   }, []);
 
@@ -207,8 +208,6 @@ export default function Page() {
     try {
       setLoading(true);
 
-      setActiveDivision(div);
-
       const res = await api.get(`/rack/divisi/${div}`);
 
       setAllRacks(res.data?.data || res.data || []);
@@ -237,17 +236,27 @@ export default function Page() {
     }
   }
 
-  const openBox = (box: Box) => {
+  function openBox(box: Box) {
     const filtered = allDocuments.filter((d) => d.boxId === box.id);
 
     setDocuments(filtered);
 
     setView("files");
-  };
+  }
+
+  function handleBack() {
+    if (view === "files") {
+      setView("boxes");
+    } else if (view === "boxes") {
+      setView("racks");
+    } else if (view === "racks") {
+      setView("divisions");
+    }
+  }
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between gap-5">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
         <div>
           <h1 className="text-4xl font-black text-slate-900 dark:text-white">
             Archive Dashboard
@@ -283,6 +292,36 @@ export default function Page() {
         </div>
       ) : (
         <>
+          <nav className="flex items-center gap-2 overflow-x-auto">
+            <button
+              onClick={() => {
+                setView("divisions");
+                setSearchTerm("");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                view === "divisions"
+                  ? "bg-cyan-500 text-white"
+                  : "bg-white dark:bg-[#081028] text-slate-500"
+              }`}
+            >
+              <Home size={16} />
+              Root
+            </button>
+
+            {view !== "divisions" && (
+              <>
+                <ChevronRight size={16} className="text-slate-300" />
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold"
+                >
+                  <ArrowLeft size={16} />
+                  Back
+                </button>
+              </>
+            )}
+          </nav>
+
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {view === "divisions" &&
               filteredDivisions.map((div) => (

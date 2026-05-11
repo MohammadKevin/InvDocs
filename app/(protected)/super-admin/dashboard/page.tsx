@@ -131,6 +131,7 @@ export default function DashboardPage() {
   const [previewFile, setPreviewFile] = useState<FileDoc | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchInitialData();
   }, []);
 
