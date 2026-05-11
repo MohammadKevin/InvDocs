@@ -40,6 +40,7 @@ interface Rack {
 }
 
 interface Box {
+  description: ReactNode;
   id: string;
   name_box: string;
   kode_box: string;
@@ -390,8 +391,9 @@ export default function Page() {
                   <p className="mt-2 text-sm font-bold text-slate-500 dark:text-slate-400">
                     {box.kode_box}
                   </p>
-
-                  <p className="mt-1 text-sm text-slate-400">Archive Box</p>
+                  <p className="mt-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                    {box.description}
+                  </p>
                 </motion.button>
               ))}
 

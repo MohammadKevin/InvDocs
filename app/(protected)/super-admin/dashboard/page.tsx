@@ -34,6 +34,7 @@ type Rack = {
 
 type Box = {
   id: string;
+  name_box: string;
   kode_box: string;
   description?: string;
   rackId: string;
@@ -56,7 +57,7 @@ function Card({
 }: {
   icon: React.ElementType;
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   onClick: () => void;
 }) {
   return (
@@ -79,14 +80,16 @@ function Card({
 
       <div className="mt-2">
         <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          Open {subtitle}
+          Open
         </p>
+
         <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight truncate">
           {title}
         </h3>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 line-clamp-2">
+
+        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 space-y-1 line-clamp-2">
           {subtitle}
-        </p>
+        </div>
       </div>
     </motion.button>
   );
@@ -198,12 +201,12 @@ export default function DashboardPage() {
       return allRacks.filter(
         (r) =>
           r.divisi === activeDivision &&
-          r.kode_rack?.toLowerCase().includes(term)
+          r.kode_rack?.toLowerCase().includes(term),
       );
     }
     if (view === "boxes") {
       return boxes.filter((b) =>
-        `${b.kode_box} ${b.description}`.toLowerCase().includes(term)
+        `${b.kode_box} ${b.description}`.toLowerCase().includes(term),
       );
     }
     if (view === "files") {
@@ -223,7 +226,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-
       {/* ── Header: title + search only ──────────────────────────────────────── */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
@@ -254,7 +256,10 @@ export default function DashboardPage() {
       {/* ── Breadcrumb nav ────────────────────────────────────────────────────── */}
       <nav className="flex items-center gap-2 overflow-x-auto">
         <button
-          onClick={() => { setView("divisions"); setSearchTerm(""); }}
+          onClick={() => {
+            setView("divisions");
+            setSearchTerm("");
+          }}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             view === "divisions"
               ? "bg-cyan-500 text-white"
@@ -283,7 +288,9 @@ export default function DashboardPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-40 space-y-4">
           <Loader2 className="animate-spin text-cyan-400" size={48} />
-          <p className="text-slate-400 font-medium text-sm">Synchronizing data...</p>
+          <p className="text-slate-400 font-medium text-sm">
+            Synchronizing data...
+          </p>
         </div>
       ) : (
         <div className="min-h-[400px]">
@@ -300,7 +307,6 @@ export default function DashboardPage() {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               <AnimatePresence mode="popLayout">
-
                 {view === "divisions" &&
                   (filteredItems as string[]).map((div) => (
                     <Card
@@ -328,8 +334,17 @@ export default function DashboardPage() {
                     <Card
                       key={b.id}
                       icon={Archive}
-                      title={b.kode_box}
-                      subtitle="Archive Box"
+                      title={b.name_box} // 👈 PALING ATAS (utama)
+                      subtitle={
+                        <>
+                          <div className="font-semibold text-slate-900 dark:text-white">
+                            {b.kode_box}
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {b.description ?? "-"}
+                          </div>
+                        </>
+                      }
                       onClick={() => openBox(b)}
                     />
                   ))}
@@ -370,7 +385,6 @@ export default function DashboardPage() {
                       </div>
                     </motion.div>
                   ))}
-
               </AnimatePresence>
             </motion.div>
           )}
@@ -405,7 +419,9 @@ export default function DashboardPage() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDownload(previewFile.fileUrl, previewFile.title)}
+                    onClick={() =>
+                      handleDownload(previewFile.fileUrl, previewFile.title)
+                    }
                     className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-xl text-sm font-bold"
                   >
                     <Download size={16} />

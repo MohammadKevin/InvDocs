@@ -40,7 +40,8 @@ interface Rack {
 }
 
 interface Box {
-  subtitle: any;
+  description: any;
+  deskripsi: any;
   name_box: any;
   id: string;
   kode_box: string;
@@ -395,7 +396,7 @@ export default function DashboardPage() {
                   icon={Archive}
                   title={b.name_box}
                   code={b.kode_box}
-                  subtitle={b.subtitle}
+                  subtitle={b.description}
                   accent={ACCENTS[i % ACCENTS.length]}
                   onClick={() => openBox(b)}
                 />
@@ -598,7 +599,14 @@ export default function DashboardPage() {
   );
 }
 
-function Card({ icon: Icon, title, subtitle, accent, onClick }: any) {
+function Card({
+  icon: Icon,
+  title,
+  subtitle,
+  code,
+  accent,
+  onClick,
+}: any) {
   return (
     <motion.button
       whileHover={{
@@ -625,7 +633,15 @@ function Card({ icon: Icon, title, subtitle, accent, onClick }: any) {
           {title}
         </h3>
 
-        <p className="mt-2 text-sm font-medium text-slate-400">{subtitle}</p>
+        {code && (
+          <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-500">
+            {code}
+          </p>
+        )}
+
+        <p className="mt-2 text-sm font-medium text-slate-400">
+          {subtitle}
+        </p>
       </div>
     </motion.button>
   );
