@@ -508,7 +508,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="h-[380px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={380}>
                   <BarChart data={incomingDocsChart}>
                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
 
