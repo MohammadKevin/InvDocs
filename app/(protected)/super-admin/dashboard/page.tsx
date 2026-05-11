@@ -328,7 +328,7 @@ export default function DashboardPage() {
                       key={b.id}
                       icon={Archive}
                       title={b.kode_box}
-                      subtitle={b.description || "Archive Box"}
+                      subtitle="Archive Box"
                       onClick={() => openBox(b)}
                     />
                   ))}
