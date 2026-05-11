@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   BarChart3,
@@ -24,6 +24,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  CartesianGrid,
 } from "recharts";
 
 import { api } from "@/lib/api";
@@ -47,7 +48,7 @@ interface StatusReport {
   total: number;
 }
 
-const STATUS_COLORS = ["#06b6d4", "#22c55e", "#ef4444", "#f59e0b"];
+const COLORS = ["#06b6d4", "#22c55e", "#ef4444", "#f59e0b"];
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -71,19 +72,17 @@ export default function ReportsPage() {
 
       const [summaryRes, monthlyRes, statusRes] = await Promise.all([
         api.get("/reports/dashboard"),
-
         api.get(`/reports/monthly?year=${currentYear}`),
-
         api.get("/reports/status"),
       ]);
 
-      setSummary(summaryRes.data);
+      setSummary(summaryRes.data?.data || summaryRes.data);
 
-      setMonthly(monthlyRes.data);
+      setMonthly(monthlyRes.data?.data || monthlyRes.data || []);
 
-      setStatus(statusRes.data);
+      setStatus(statusRes.data?.data || statusRes.data || []);
     } catch (error) {
-      console.error(error);
+      console.error("REPORT ERROR:", error);
     } finally {
       setLoading(false);
     }
@@ -112,14 +111,18 @@ export default function ReportsPage() {
 
       link.remove();
     } catch (error) {
-      console.error(error);
+      console.error("EXPORT ERROR:", error);
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <Loader2 className="animate-spin text-cyan-400" size={40} />
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
+        <Loader2 className="animate-spin text-cyan-400" size={42} />
+
+        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-500">
+          Loading Reports...
+        </p>
       </div>
     );
   }
@@ -212,6 +215,8 @@ export default function ReportsPage() {
           <div className="w-full h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthly}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+
                 <XAxis dataKey="month" stroke="#94a3b8" />
 
                 <YAxis stroke="#94a3b8" />
@@ -254,7 +259,7 @@ export default function ReportsPage() {
                   {status.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={STATUS_COLORS[index % STATUS_COLORS.length]}
+                      fill={COLORS[index % COLORS.length]}
                     />
                   ))}
                 </Pie>
@@ -279,7 +284,7 @@ function Card({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#081028] border border-cyan-500/10 rounded-[2rem] p-6 shadow-xl shadow-black/20">
+    <div className="bg-[#081028] border border-cyan-500/10 rounded-[2rem] p-6 shadow-xl shadow-black/20 hover:border-cyan-500/30 transition-all">
       <div className="flex items-center justify-between mb-5">
         <div className="text-slate-400 font-bold text-sm">{title}</div>
 
