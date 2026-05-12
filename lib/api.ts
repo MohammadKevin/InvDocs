@@ -7,25 +7,17 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://invdocs-api-production.up.railway.app/api";
 
-// =======================
-// 🔥 AXIOS INSTANCE
-// =======================
 export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
 });
 
-// =======================
-// 📤 REQUEST INTERCEPTOR
-// =======================
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
       const token =
         localStorage.getItem("access_token") ||
         localStorage.getItem("token");
-
-      console.log("JWT TOKEN:", token);
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -37,9 +29,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// =======================
-// 📥 RESPONSE INTERCEPTOR
-// =======================
 api.interceptors.response.use(
   (response) => response,
 
@@ -63,7 +52,7 @@ api.interceptors.response.use(
         message = error.message;
       }
 
-      console.error("API ERROR DETAIL:", {
+      console.error("API ERROR:", {
         status,
         message,
         data,
@@ -71,11 +60,6 @@ api.interceptors.response.use(
         method: error.config?.method,
       });
 
-      console.error("FULL ERROR OBJECT:", error);
-
-      // =======================
-      // 🔐 AUTO LOGOUT
-      // =======================
       if (status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("token");
@@ -86,14 +70,10 @@ api.interceptors.response.use(
       }
     }
 
-    // 🔥 RETURN ERROR ASLI AXIOS
     return Promise.reject(error);
   }
 );
 
-// =======================
-// 📤 UPLOAD FILE
-// =======================
 export const uploadFile = async (
   url: string,
   file: File,
@@ -109,12 +89,13 @@ export const uploadFile = async (
     });
   }
 
-  return api.post(url, formData);
+  return api.post(url, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
-// =======================
-// 📥 DOWNLOAD FILE
-// =======================
 export const downloadFile = async (
   url: string,
   filename = "file"
@@ -137,36 +118,5 @@ export const downloadFile = async (
 
   link.remove();
 };
-
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== "undefined") {
-      const token =
-        localStorage.getItem("access_token") ||
-        localStorage.getItem("token");
-
-      console.log("TOKEN:", token);
-
-      console.log("REQUEST URL:", config.url);
-
-      console.log(
-        "AUTH HEADER BEFORE:",
-        config.headers.Authorization
-      );
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      console.log(
-        "AUTH HEADER AFTER:",
-        config.headers.Authorization
-      );
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 export default api;

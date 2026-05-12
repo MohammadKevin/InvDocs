@@ -18,6 +18,7 @@ import {
   BarChart3,
   Home,
   ChevronRight,
+  FolderOpen,
 } from "lucide-react";
 
 import {
@@ -40,12 +41,11 @@ interface Rack {
 }
 
 interface Box {
-  description: any;
-  deskripsi: any;
-  name_box: any;
   id: string;
   kode_box: string;
   rackId: string;
+  name_box?: string;
+  description?: string;
 }
 
 interface FileDoc {
@@ -66,9 +66,9 @@ const ACCENTS = [
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
-  const [view, setView] = useState<"divisions" | "racks" | "boxes" | "files">(
-    "divisions",
-  );
+  const [view, setView] = useState<
+    "divisions" | "racks" | "boxes" | "files"
+  >("divisions");
 
   const [divisions, setDivisions] = useState<string[]>([]);
 
@@ -93,7 +93,6 @@ export default function DashboardPage() {
   >("month");
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     fetchInitial();
   }, []);
 
@@ -102,16 +101,28 @@ export default function DashboardPage() {
       setLoading(true);
 
       const [rackRes, boxRes, docRes] = await Promise.all([
-        api.get("/rack/my"),
+        api.get("/rack"),
         api.get("/boxes"),
         api.get("/documents"),
       ]);
 
-      const racksData: Rack[] = rackRes.data?.data || rackRes.data || [];
+      const racksData: Rack[] = Array.isArray(rackRes.data?.data)
+        ? rackRes.data.data
+        : Array.isArray(rackRes.data)
+          ? rackRes.data
+          : [];
 
-      const boxesData: Box[] = boxRes.data?.data || boxRes.data || [];
+      const boxesData: Box[] = Array.isArray(boxRes.data?.data)
+        ? boxRes.data.data
+        : Array.isArray(boxRes.data)
+          ? boxRes.data
+          : [];
 
-      const docsData: FileDoc[] = docRes.data?.data || docRes.data || [];
+      const docsData: FileDoc[] = Array.isArray(docRes.data?.data)
+        ? docRes.data.data
+        : Array.isArray(docRes.data)
+          ? docRes.data
+          : [];
 
       setRacks(racksData);
 
@@ -119,34 +130,16 @@ export default function DashboardPage() {
 
       setDocuments(docsData);
 
-      const uniqueDivisions: string[] = Array.from(
-        new Set(racksData.map((r) => String(r.divisi))),
+      const uniqueDivisions = Array.from(
+        new Set(racksData.map((r) => r.divisi)),
       );
 
       setDivisions(uniqueDivisions);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("API ERROR:", err.response?.data);
     } finally {
       setLoading(false);
     }
-  }
-
-  function openDivision(division: string) {
-    setSelectedDivision(division);
-
-    setView("racks");
-  }
-
-  function openRack(rack: Rack) {
-    setSelectedRack(rack);
-
-    setView("boxes");
-  }
-
-  function openBox(box: Box) {
-    setSelectedBox(box);
-
-    setView("files");
   }
 
   function handleBack() {
@@ -281,27 +274,51 @@ export default function DashboardPage() {
     }));
   }, [documents, chartRange]);
 
+  function EmptyState({
+    title,
+    desc,
+  }: {
+    title: string;
+    desc: string;
+  }) {
+    return (
+      <div className="col-span-full py-24 flex flex-col items-center justify-center text-center">
+        <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-6">
+          <FolderOpen size={38} className="text-slate-400" />
+        </div>
+
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+          {title}
+        </h3>
+
+        <p className="mt-3 text-slate-400 max-w-md">
+          {desc}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
         <div>
-          <p className="text-cyan-500 text-[11px] font-black uppercase tracking-[0.3em] mb-3">
+          <p className="text-cyan-500 text-[11px] uppercase tracking-[0.35em] font-black mb-4">
             Smart Archive Dashboard
           </p>
 
-          <h1 className="text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white">
             Digital Archive
           </h1>
         </div>
-        
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           {view !== "divisions" && (
             <button
               onClick={handleBack}
-              className="w-14 h-14 rounded-2xl bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:scale-105 transition-all"
+              className="h-14 px-5 rounded-2xl bg-slate-900 text-white flex items-center justify-center gap-2 font-bold hover:scale-105 transition-all"
             >
-              <ArrowLeft size={22} />
+              <ArrowLeft size={18} />
+              Back
             </button>
           )}
 
@@ -314,56 +331,59 @@ export default function DashboardPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
-              className="w-[300px] h-14 pl-14 pr-5 rounded-2xl bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 outline-none font-bold"
+              placeholder="Search data..."
+              className="w-full sm:w-[320px] h-14 pl-14 pr-5 rounded-2xl bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 outline-none font-semibold"
             />
           </div>
         </div>
       </div>
-      <nav className="flex items-center gap-2 overflow-x-auto">
-  <button
-    onClick={() => {
-      setView("divisions");
-      setSearch("");
-    }}
-    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-      view === "divisions"
-        ? "bg-cyan-500 text-white"
-        : "bg-white dark:bg-[#081028] text-slate-500 border border-slate-200 dark:border-slate-800"
-    }`}
-  >
-    <Home size={16} />
-    Root
-  </button>
 
-  {view !== "divisions" && (
-    <>
-      <ChevronRight size={16} className="text-slate-300" />
+      <nav className="flex items-center gap-3 overflow-x-auto">
+        <button
+          onClick={() => {
+            setView("divisions");
+            setSearch("");
+          }}
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white font-bold"
+        >
+          <Home size={16} />
+          Home
+        </button>
 
-      <button
-        onClick={handleBack}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold"
-      >
-        <ArrowLeft size={16} />
-        Back
-      </button>
-    </>
-  )}
-</nav>
+        {selectedDivision && (
+          <>
+            <ChevronRight size={16} className="text-slate-300" />
+
+            <div className="px-4 py-2 rounded-xl bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 font-bold">
+              {selectedDivision}
+            </div>
+          </>
+        )}
+
+        {selectedRack && (
+          <>
+            <ChevronRight size={16} className="text-slate-300" />
+
+            <div className="px-4 py-2 rounded-xl bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 font-bold">
+              {selectedRack.kode_rack}
+            </div>
+          </>
+        )}
+      </nav>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <Loader2 className="animate-spin text-cyan-500" size={42} />
+        <div className="py-40 flex flex-col items-center justify-center gap-6">
+          <Loader2 className="animate-spin text-cyan-500" size={50} />
 
-          <p className="text-[11px] uppercase tracking-[0.3em] font-black text-slate-300">
-            Loading Data
+          <p className="uppercase tracking-[0.4em] text-xs font-black text-slate-400">
+            Loading Dashboard
           </p>
         </div>
       ) : (
         <>
           <motion.div
             layout
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6"
           >
             {view === "divisions" &&
               filteredDivisions.map((d, i) => (
@@ -373,7 +393,10 @@ export default function DashboardPage() {
                   title={d}
                   subtitle="Division"
                   accent={ACCENTS[i % ACCENTS.length]}
-                  onClick={() => openDivision(d)}
+                  onClick={() => {
+                    setSelectedDivision(d);
+                    setView("racks");
+                  }}
                 />
               ))}
 
@@ -383,9 +406,12 @@ export default function DashboardPage() {
                   key={r.id}
                   icon={Server}
                   title={r.kode_rack}
-                  subtitle={r.status || "Rack"}
+                  subtitle={r.status || "Storage Rack"}
                   accent={ACCENTS[i % ACCENTS.length]}
-                  onClick={() => openRack(r)}
+                  onClick={() => {
+                    setSelectedRack(r);
+                    setView("boxes");
+                  }}
                 />
               ))}
 
@@ -394,11 +420,14 @@ export default function DashboardPage() {
                 <Card
                   key={b.id}
                   icon={Archive}
-                  title={b.name_box}
+                  title={b.name_box || "Unnamed Box"}
                   code={b.kode_box}
-                  subtitle={b.description}
+                  subtitle={b.description || "Document Storage"}
                   accent={ACCENTS[i % ACCENTS.length]}
-                  onClick={() => openBox(b)}
+                  onClick={() => {
+                    setSelectedBox(b);
+                    setView("files");
+                  }}
                 />
               ))}
 
@@ -406,25 +435,16 @@ export default function DashboardPage() {
               filteredFiles.map((f, i) => (
                 <motion.div
                   key={f.id}
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  className="group p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#081028] shadow-sm hover:shadow-xl transition-all"
+                  whileHover={{ y: -5 }}
+                  className="rounded-[2rem] bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 p-6 shadow-sm"
                 >
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${
-                      ACCENTS[i % ACCENTS.length]
-                    } text-white flex items-center justify-center mb-5`}
+                    className={`w-16 h-16 rounded-3xl bg-gradient-to-br ${ACCENTS[i % ACCENTS.length]} text-white flex items-center justify-center mb-6`}
                   >
-                    <FileText size={26} />
+                    <FileText size={28} />
                   </div>
 
-                  <h3 className="font-black text-slate-800 dark:text-white line-clamp-2">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white line-clamp-2">
                     {f.title}
                   </h3>
 
@@ -432,10 +452,10 @@ export default function DashboardPage() {
                     Digital Document
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 mt-6">
+                  <div className="grid grid-cols-2 gap-3 mt-7">
                     <button
                       onClick={() => setPreviewFile(f)}
-                      className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-cyan-600 text-white py-3 rounded-2xl text-sm font-bold transition-all"
+                      className="h-12 rounded-2xl bg-slate-900 hover:bg-cyan-600 text-white font-bold flex items-center justify-center gap-2 transition-all"
                     >
                       <Eye size={16} />
                       Preview
@@ -444,7 +464,7 @@ export default function DashboardPage() {
                     <a
                       href={f.fileUrl}
                       target="_blank"
-                      className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-2xl text-sm font-bold transition-all"
+                      className="h-12 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-bold flex items-center justify-center gap-2 transition-all"
                     >
                       <Download size={16} />
                       Download
@@ -452,54 +472,73 @@ export default function DashboardPage() {
                   </div>
                 </motion.div>
               ))}
+
+            {view === "divisions" &&
+              filteredDivisions.length === 0 && (
+                <EmptyState
+                  title="No Division Found"
+                  desc="Tidak ada divisi yang cocok dengan pencarian."
+                />
+              )}
+
+            {view === "racks" &&
+              filteredRacks.length === 0 && (
+                <EmptyState
+                  title="No Rack Found"
+                  desc="Rack tidak ditemukan."
+                />
+              )}
+
+            {view === "boxes" &&
+              filteredBoxes.length === 0 && (
+                <EmptyState
+                  title="No Box Found"
+                  desc="Belum ada box di rack ini."
+                />
+              )}
+
+            {view === "files" &&
+              filteredFiles.length === 0 && (
+                <EmptyState
+                  title="No Document Found"
+                  desc="Belum ada dokumen di dalam box."
+                />
+              )}
           </motion.div>
 
           {view === "divisions" && (
-            <div className="bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
+            <div className="rounded-[2.5rem] bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 p-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 mb-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 flex items-center justify-center">
-                    <BarChart3 size={26} />
+                  <div className="w-16 h-16 rounded-3xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
+                    <BarChart3 size={28} />
                   </div>
 
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white">
                       Incoming Documents
                     </h2>
 
-                    <p className="text-sm text-slate-400">
-                      Statistik jumlah dokumen masuk
+                    <p className="text-slate-400 mt-1">
+                      Statistik dokumen masuk
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {[
-                    {
-                      key: "week",
-                      label: "1 Minggu",
-                    },
-                    {
-                      key: "month",
-                      label: "1 Bulan",
-                    },
-                    {
-                      key: "year",
-                      label: "1 Tahun",
-                    },
-                    {
-                      key: "3year",
-                      label: "3 Tahun",
-                    },
+                    { key: "week", label: "1 Minggu" },
+                    { key: "month", label: "1 Bulan" },
+                    { key: "year", label: "1 Tahun" },
+                    { key: "3year", label: "3 Tahun" },
                   ].map((item) => (
                     <button
                       key={item.key}
                       onClick={() => setChartRange(item.key as any)}
-                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                        chartRange === item.key
+                      className={`px-5 py-3 rounded-2xl font-bold transition-all ${chartRange === item.key
                           ? "bg-cyan-500 text-white"
-                          : "bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400"
-                      }`}
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-500"
+                        }`}
                     >
                       {item.label}
                     </button>
@@ -510,7 +549,10 @@ export default function DashboardPage() {
               <div className="h-[380px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={incomingDocsChart}>
-                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      strokeOpacity={0.1}
+                    />
 
                     <XAxis dataKey="name" />
 
@@ -532,63 +574,51 @@ export default function DashboardPage() {
           <AnimatePresence>
             {previewFile && (
               <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={() => setPreviewFile(null)}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
               >
                 <motion.div
                   initial={{
                     scale: 0.95,
                     opacity: 0,
-                    y: 20,
                   }}
                   animate={{
                     scale: 1,
                     opacity: 1,
-                    y: 0,
                   }}
                   exit={{
                     scale: 0.95,
                     opacity: 0,
-                    y: 20,
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 w-full max-w-6xl h-[90vh] rounded-[2rem] overflow-hidden shadow-2xl"
+                  className="w-full max-w-7xl h-[92vh] rounded-[2rem] overflow-hidden bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl"
                 >
                   <div className="h-20 px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500 mb-1">
+                      <p className="text-[10px] uppercase tracking-[0.3em] font-black text-cyan-500">
                         Document Preview
                       </p>
 
-                      <h2 className="font-black text-slate-800 dark:text-white truncate max-w-[300px]">
+                      <h2 className="text-xl font-black text-slate-900 dark:text-white mt-2">
                         {previewFile.title}
                       </h2>
                     </div>
 
                     <button
                       onClick={() => setPreviewFile(null)}
-                      className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center transition-all"
+                      className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center"
                     >
                       <X size={18} />
                     </button>
                   </div>
 
-                  <div className="w-full h-[calc(100%-80px)] bg-slate-200 dark:bg-slate-800">
-                    <iframe
-                      src={previewFile.fileUrl}
-                      title="Document Preview"
-                      className="w-full h-full"
-                    />
-                  </div>
+                  <iframe
+                    src={previewFile.fileUrl}
+                    className="w-full h-[calc(100%-80px)]"
+                  />
                 </motion.div>
               </motion.div>
             )}
@@ -609,37 +639,33 @@ function Card({
 }: any) {
   return (
     <motion.button
-      whileHover={{
-        y: -5,
-      }}
-      whileTap={{
-        scale: 0.98,
-      }}
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#081028] p-7 text-left shadow-sm hover:shadow-xl transition-all"
+      className="group relative overflow-hidden rounded-[2rem] bg-white dark:bg-[#081028] border border-slate-200 dark:border-slate-800 p-7 text-left shadow-sm hover:shadow-2xl transition-all"
     >
       <div
-        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-all bg-gradient-to-br ${accent}`}
+        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-br ${accent}`}
       />
 
       <div className="relative z-10">
         <div
-          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${accent} text-white flex items-center justify-center mb-6`}
+          className={`w-16 h-16 rounded-3xl bg-gradient-to-br ${accent} text-white flex items-center justify-center shadow-lg mb-6`}
         >
-          <Icon size={26} />
+          <Icon size={30} />
         </div>
 
-        <h3 className="text-xl font-black text-slate-900 dark:text-white">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
           {title}
         </h3>
 
         {code && (
-          <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-500">
+          <p className="mt-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-500">
             {code}
           </p>
         )}
 
-        <p className="mt-2 text-sm font-medium text-slate-400">
+        <p className="mt-3 text-sm text-slate-400">
           {subtitle}
         </p>
       </div>
