@@ -18,10 +18,10 @@ InvDocs enables freelancers and small businesses to generate professional PDF in
 ---
 
 ## ✨ Key Features
-- ⚡ **Customizable invoice builder with itemized taxes and discounts**: Customizable invoice builder with itemized taxes and discounts
-- ⚡ **Instant PDF export and shareable invoice payment links**: Instant PDF export and shareable invoice payment links
-- ⚡ **Client management directory and outstanding balance overview**: Client management directory and outstanding balance overview
-- ⚡ **Dark / Light theme support with next-themes**: Dark / Light theme support with next-themes
+- Customizable invoice builder with itemized taxes and discounts
+- Instant PDF export and shareable invoice payment links
+- Client management directory and outstanding balance overview
+- Dark / Light theme support with next-themes
 
 ---
 
